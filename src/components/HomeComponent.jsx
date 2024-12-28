@@ -1,8 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { BookOpen, Bot, Settings2, SquareTerminal } from "lucide-react";
-
+import {
+  BookOpen,
+  Bot,
+  Settings2,
+  SquareTerminal,
+  ChartNoAxesCombined,
+} from "lucide-react";
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
 import {
@@ -22,10 +27,14 @@ const data = {
   },
   navMain: [
     {
+      title: "Ringkasan",
+      url: "/home",
+      icon: ChartNoAxesCombined,
+    },
+    {
       title: "Administrasi",
       url: "#",
       icon: SquareTerminal,
-      isActive: true,
       items: [
         {
           title: "KTP",
