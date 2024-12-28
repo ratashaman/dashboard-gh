@@ -1,0 +1,11 @@
+services:
+  app:
+    restart: always
+    container_name: dashboard-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .env:/app/.env
+    ports:
+      - ${PORT}:3000
