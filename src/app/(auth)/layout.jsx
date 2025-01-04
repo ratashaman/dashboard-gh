@@ -1,13 +1,8 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Lexend } from "next/font/google";
 import "@/styles/globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const lexendSans = Lexend({
+  variable: "--font-lexend-sans",
   subsets: ["latin"],
 });
 
@@ -19,10 +14,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+      <body className={`${lexendSans.className} antialiased`}>
+        <div className="flex min-h-svh flex-col items-center justify-center bg-muted p-6 md:p-10">
+          <div className="w-full max-w-sm md:max-w-xl">{children}</div>
+        </div>
       </body>
     </html>
   );
