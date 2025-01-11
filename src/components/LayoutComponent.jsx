@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { usePathname } from "next/navigation";
+import Script from "next/script";
 import {
   BookOpen,
   Bot,
@@ -25,7 +26,6 @@ import {
 import {
   Breadcrumb,
   BreadcrumbItem,
-  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
@@ -185,6 +185,28 @@ export default function LayoutComponent({ children, ...props }) {
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           <div className="flex-1 space-y-4 p-8 pt-6">{children}</div>
+          <Script
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `
+                window.cakra_chat_api_id = 262; //Mandatory
+                window.cakra_chat_api_key = "5d812383-fd34-438f-b9ca-0f42fb9b4be6"; //Mandatory
+                window.cakra_personal_data = ""; //Optional
+                window.cakra_initial_message = "Halo, ada yang bisa saya bantu?"; //Optional
+                window.cakra_use_tts = "true"; //Optional(true or false, default=true)
+                window.cakra_use_stt = "false"; //Optional(true or false, default=false)
+                window.cakra_show_feedback = "false"; //Optional(true or false, default=false)
+              `,
+            }}
+          />
+          <Script
+            async
+            src="https://stag-saas.cakra.ai/static/js/widget_cakra.min.js"
+            strategy="afterInteractive"
+            onError={(e) =>
+              console.error(`ChatBot Script failed to load for`, e)
+            }
+          />
         </div>
       </SidebarInset>
     </SidebarProvider>
