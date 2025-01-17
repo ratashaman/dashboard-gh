@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Script from "next/script";
+import { useUserStore } from "@/store";
 import {
   BookOpen,
   Bot,
@@ -31,18 +32,14 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
+import LoadingScreen from "@/components/shared/loadingScreen";
 
 // This is sample data.
 const data = {
-  user: {
-    name: "Admin",
-    email: "admin@garuthebat.com",
-    avatar: "/placeholder.svg",
-  },
   navMain: [
     {
       title: "Ringkasan",
-      url: "/ringkasan",
+      url: "/dashboard/ringkasan",
       icon: ChartNoAxesCombined,
     },
     {
@@ -52,7 +49,7 @@ const data = {
       items: [
         {
           title: "KTP",
-          url: "/administrasi/ktp",
+          url: "/dashboard/administrasi/ktp",
         },
         {
           title: "KK",
@@ -105,11 +102,11 @@ const data = {
       items: [
         {
           title: "Category",
-          url: "/berita/category",
+          url: "/dashboard/berita/category",
         },
         {
           title: "Post",
-          url: "/berita/post",
+          url: "/dashboard/berita/post",
         },
       ],
     },
@@ -132,8 +129,24 @@ const data = {
 };
 
 export default function LayoutComponent({ children, ...props }) {
+  const router = useRouter();
   const pathname = usePathname();
   const pathsplit = pathname.split("/");
+  const { users, isLoading, fetchUsers } = useUserStore();
+
+  React.useEffect(() => {
+    const checkToken = async () => {
+      const isValid = await fetchUsers();
+
+      if (!isValid) {
+        router.push("/"); // Redirect jika token tidak valid
+      }
+    };
+
+    checkToken();
+  }, [fetchUsers]);
+
+  if (isLoading) return <LoadingScreen />;
 
   return (
     <SidebarProvider>
@@ -151,7 +164,7 @@ export default function LayoutComponent({ children, ...props }) {
           <NavMain items={data.navMain} />
         </SidebarContent>
         <SidebarFooter>
-          <NavUser user={data.user} />
+          <NavUser user={users} />
         </SidebarFooter>
         <SidebarRail />
       </Sidebar>
@@ -189,7 +202,7 @@ export default function LayoutComponent({ children, ...props }) {
             strategy="afterInteractive"
             dangerouslySetInnerHTML={{
               __html: `
-                window.cakra_chat_api_id = 262; //Mandatory
+                window.cakra_chat_api_id = 261; //Mandatory
                 window.cakra_chat_api_key = "5d812383-fd34-438f-b9ca-0f42fb9b4be6"; //Mandatory
                 window.cakra_personal_data = ""; //Optional
                 window.cakra_initial_message = "Halo, ada yang bisa saya bantu?"; //Optional

@@ -1,13 +1,18 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export default function LoginComponent({ className, ...props }) {
+export default function LoginComponent({ handleLogin, errMessage }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className="flex flex-col gap-6">
       <Card className="overflow-hidden">
         <CardContent className="p-0">
           <form className="p-6 md:p-8">
@@ -24,30 +29,44 @@ export default function LoginComponent({ className, ...props }) {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Masukkan alamat email</Label>
-                <Input id="email" type="email" required />
+                <Input
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  id="email"
+                  type="email"
+                  required
+                />
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center">
                   <Label htmlFor="password">Masukkan password</Label>
-                  <a
+                  <Link
                     href="#"
                     className="ml-auto text-sm underline-offset-2 hover:underline"
                   >
                     Lupa password?
-                  </a>
+                  </Link>
                 </div>
-                <Input id="password" type="password" required />
+                <Input
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  id="password"
+                  type="password"
+                  required
+                />
               </div>
-              <Link
-                href="/ringkasan"
-                className="w-full"
-                passHref
-                legacyBehavior
+              {errMessage !== "" && (
+                <div className="p-2 rounded-md text-center border border-destructive-foreground text-destructive">
+                  {errMessage}
+                </div>
+              )}
+              <Button
+                type="button"
+                onClick={() => handleLogin(email, password)}
+                className="w-full font-bold"
               >
-                <Button type="submit" className="w-full font-bold">
-                  Masuk
-                </Button>
-              </Link>
+                Masuk
+              </Button>
             </div>
           </form>
         </CardContent>
