@@ -11,8 +11,11 @@ export default function LoginPage() {
   const router = useRouter();
   const [errMessage, setErrMessage] = useState("");
 
-  const handleLogin = async (email, password) => {
-    setErrMessage("");
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const { email, password } = Object.fromEntries(formData);
+
     try {
       const { data } = await post("user-management/authentication/signin", {
         email,
@@ -30,5 +33,11 @@ export default function LoginPage() {
     }
   };
 
-  return <LoginComponent handleLogin={handleLogin} errMessage={errMessage} />;
+  return (
+    <LoginComponent
+      handleLogin={handleLogin}
+      setErrMessage={setErrMessage}
+      errMessage={errMessage}
+    />
+  );
 }

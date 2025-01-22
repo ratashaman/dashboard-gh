@@ -1,21 +1,21 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export default function LoginComponent({ handleLogin, errMessage }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
+export default function LoginComponent({
+  handleLogin,
+  setErrMessage,
+  errMessage,
+}) {
   return (
     <div className="flex flex-col gap-6">
       <Card className="overflow-hidden">
         <CardContent className="p-0">
-          <form className="p-6 md:p-8">
+          <form onSubmit={handleLogin} className="p-6 md:p-8">
             <div className="flex flex-col gap-6">
               <div className="flex flex-col items-center text-center gap-6">
                 <img
@@ -30,9 +30,9 @@ export default function LoginComponent({ handleLogin, errMessage }) {
               <div className="grid gap-2">
                 <Label htmlFor="email">Masukkan alamat email</Label>
                 <Input
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => setErrMessage("")}
                   id="email"
+                  name="email"
                   type="email"
                   required
                 />
@@ -48,9 +48,9 @@ export default function LoginComponent({ handleLogin, errMessage }) {
                   </Link>
                 </div>
                 <Input
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => setErrMessage("")}
                   id="password"
+                  name="password"
                   type="password"
                   required
                 />
@@ -60,11 +60,7 @@ export default function LoginComponent({ handleLogin, errMessage }) {
                   {errMessage}
                 </div>
               )}
-              <Button
-                type="button"
-                onClick={() => handleLogin(email, password)}
-                className="w-full font-bold"
-              >
+              <Button type="submit" className="w-full font-bold">
                 Masuk
               </Button>
             </div>

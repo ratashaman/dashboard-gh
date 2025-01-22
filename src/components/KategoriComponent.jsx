@@ -130,7 +130,7 @@ export const columns = [
   },
 ];
 
-export default function CategoryComponent() {
+export default function KategoriComponent() {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
   const [columnVisibility, setColumnVisibility] = React.useState({});
@@ -158,7 +158,7 @@ export default function CategoryComponent() {
   return (
     <>
       <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Category Berita</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Kategori Berita</h2>
       </div>
       <div className="grid gap-4 grid-cols-1">
         <Card>
@@ -166,7 +166,7 @@ export default function CategoryComponent() {
             <div className="w-full">
               <div className="flex items-center py-4">
                 <Input
-                  placeholder="Filter category..."
+                  placeholder="Filter kategori..."
                   value={table.getColumn("slug")?.getFilterValue() ?? ""}
                   onChange={(event) =>
                     table.getColumn("slug")?.setFilterValue(event.target.value)
@@ -174,7 +174,7 @@ export default function CategoryComponent() {
                   className="max-w-sm"
                 />
                 <Button variant="secondary" className="ml-auto">
-                  Tambah Category
+                  Tambah Kategori
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

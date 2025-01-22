@@ -135,7 +135,7 @@ export const columns = [
   },
 ];
 
-export default function PostComponent() {
+export default function ListBeritaComponent() {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
   const [columnVisibility, setColumnVisibility] = React.useState({});
@@ -163,7 +163,7 @@ export default function PostComponent() {
   return (
     <>
       <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Post Berita</h2>
+        <h2 className="text-3xl font-bold tracking-tight">List Berita</h2>
       </div>
       <div className="grid gap-4 grid-cols-1">
         <Card>
@@ -179,7 +179,7 @@ export default function PostComponent() {
                   className="max-w-sm"
                 />
                 <Button variant="secondary" className="ml-auto">
-                  Tambah Post
+                  Tambah Berita
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

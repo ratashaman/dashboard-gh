@@ -77,7 +77,7 @@ const data = {
       ],
     },
     {
-      title: "Job Portal",
+      title: "Lowongan Pekerjaan",
       url: "#",
       icon: BookOpen,
       items: [
@@ -86,11 +86,11 @@ const data = {
           url: "#",
         },
         {
-          title: "Recruiter",
+          title: "Perekrut Kerja",
           url: "#",
         },
         {
-          title: "Seeker",
+          title: "Pencari Kerja",
           url: "#",
         },
       ],
@@ -101,27 +101,23 @@ const data = {
       icon: Newspaper,
       items: [
         {
-          title: "Category",
-          url: "/dashboard/berita/category",
+          title: "Kategori",
+          url: "/dashboard/berita/kategori",
         },
         {
-          title: "Post",
-          url: "/dashboard/berita/post",
+          title: "List Berita",
+          url: "/dashboard/berita/list-berita",
         },
       ],
     },
     {
-      title: "Settings",
+      title: "Pengaturan",
       url: "#",
       icon: Settings2,
       items: [
         {
-          title: "User",
-          url: "#",
-        },
-        {
-          title: "Admin",
-          url: "#",
+          title: "List Pengguna",
+          url: "/dashboard/pengaturan/list-pengguna",
         },
       ],
     },
@@ -146,7 +142,7 @@ export default function LayoutComponent({ children, ...props }) {
     checkToken();
   }, [fetchUsers]);
 
-  if (isLoading) return <LoadingScreen />;
+  // if (isLoading) return <LoadingScreen />;
 
   return (
     <SidebarProvider>
@@ -175,9 +171,6 @@ export default function LayoutComponent({ children, ...props }) {
             <Separator orientation="vertical" className="mr-2 h-4" />
             <Breadcrumb>
               <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbPage>Dashboard</BreadcrumbPage>
-                </BreadcrumbItem>
                 {pathsplit.length &&
                   pathsplit.map((path, id) => {
                     if (path !== "")
@@ -186,7 +179,7 @@ export default function LayoutComponent({ children, ...props }) {
                           <BreadcrumbSeparator className="hidden md:block" />
                           <BreadcrumbItem>
                             <BreadcrumbPage className="capitalize">
-                              {path}
+                              {path.replace("-", " ")}
                             </BreadcrumbPage>
                           </BreadcrumbItem>
                         </React.Fragment>
