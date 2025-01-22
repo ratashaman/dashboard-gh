@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { get } from "@/lib/services";
+import { get, post, put, del } from "@/lib/services";
 import { cl } from "@/lib/logger";
 import ListPenggunaComponent from "@/components/ListPenggunaComponent";
 
@@ -32,13 +32,39 @@ export default function ListPenggunaPage() {
 
   const addUser = async (payload) => {
     try {
-      const { data } = await post(
-        "user-management/authentication/signin",
-        payload
-      );
-      cl(data);
+      const { data } = await post("user-management/internal/users", payload);
+      await getUser();
+      return data;
     } catch (error) {
       cl(error);
+      throw error;
+    }
+  };
+
+  const editUser = async (id, payload) => {
+    try {
+      const { data } = await put(
+        "user-management/internal/users/" + id,
+        payload
+      );
+      await getUser();
+      console.log(data);
+
+      return data;
+    } catch (error) {
+      cl(error);
+      throw error;
+    }
+  };
+
+  const delUser = async (id) => {
+    try {
+      const { data } = await del("user-management/internal/users/" + id);
+      await getUser();
+      return data;
+    } catch (error) {
+      cl(error);
+      throw error;
     }
   };
 
@@ -52,6 +78,8 @@ export default function ListPenggunaPage() {
     asyncFunc();
   }, []);
   return (
-    <ListPenggunaComponent {...{ listUser, listRole, isLoading, addUser }} />
+    <ListPenggunaComponent
+      {...{ listUser, listRole, isLoading, addUser, editUser, delUser }}
+    />
   );
 }

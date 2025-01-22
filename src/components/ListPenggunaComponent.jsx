@@ -49,7 +49,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Combobox,
@@ -60,113 +59,151 @@ import {
   ComboboxEmpty,
   ComboboxInput,
   ComboboxItem,
-  ComboboxLabel,
   ComboboxTrigger,
 } from "@/components/ui/combobox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import LoadingScreen from "@/components/shared/loadingScreen";
 import { cl } from "@/lib/logger";
-
-export const columns = [
-  // {
-  //   id: "select",
-  //   header: ({ table }) => (
-  //     <Checkbox
-  //       checked={
-  //         table.getIsAllPageRowsSelected() ||
-  //         (table.getIsSomePageRowsSelected() && "indeterminate")
-  //       }
-  //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-  //       aria-label="Select all"
-  //     />
-  //   ),
-  //   cell: ({ row }) => (
-  //     <Checkbox
-  //       checked={row.getIsSelected()}
-  //       onCheckedChange={(value) => row.toggleSelected(!!value)}
-  //       aria-label="Select row"
-  //     />
-  //   ),
-  //   enableSorting: false,
-  //   enableHiding: false,
-  // },
-  {
-    accessorKey: "fullName",
-    header: "Nama Lengkap",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("fullName")}</div>
-    ),
-  },
-  {
-    accessorKey: "email",
-    header: "Email",
-    cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
-  },
-  {
-    accessorKey: "roles",
-    header: "Role",
-    cell: ({ row }) => (
-      <div className="capitalize">
-        {row
-          .getValue("roles")
-          .map((x) => x.name)
-          .join(", ")}
-      </div>
-    ),
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => {
-      const payment = row.original;
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem>Ubah Pengguna</DropdownMenuItem>
-            <DropdownMenuItem>Hapus Pengguna</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
-  },
-];
 
 export default function ListPenggunaComponent({
   listUser,
   listRole,
   isLoading,
   addUser,
+  editUser,
+  delUser,
 }) {
   const [openDialog, setOpenDialog] = useState(false);
+  const [openAlert, setOpenAlert] = useState(false);
   const [errMessage, setErrMessage] = useState("");
-  const [roles, setRoles] = useState([]);
+  const [roleIds, setRoleIds] = useState([]);
+  const [detailUser, setDetailUser] = useState({});
+
+  const columns = [
+    {
+      accessorKey: "fullName",
+      header: "Nama Lengkap",
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue("fullName")}</div>
+      ),
+    },
+    {
+      accessorKey: "email",
+      header: "Email",
+      cell: ({ row }) => (
+        <div className="lowercase">{row.getValue("email")}</div>
+      ),
+    },
+    {
+      accessorKey: "roles",
+      header: "Role",
+      cell: ({ row }) => (
+        <div className="capitalize">
+          {row
+            .getValue("roles")
+            .map((x) => x.name)
+            .join(", ")}
+        </div>
+      ),
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        const detail = row.original;
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Buka menu</span>
+                <MoreHorizontal />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => {
+                  const roles = detail.roles.map((item) => item.id);
+                  setRoleIds(roles);
+                  setDetailUser(detail);
+                  setOpenDialog(true);
+                }}
+              >
+                Ubah Pengguna
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  setDetailUser(detail);
+                  setOpenAlert(true);
+                }}
+              >
+                Hapus Pengguna
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
+  ];
 
   const handleAddUser = async (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const { fullName, email, password, passwordConf } =
-      Object.fromEntries(formData);
-    cl(fullName);
-    cl(email);
-    cl(password);
-    cl(passwordConf);
-    setErrMessage("test");
+    try {
+      const formData = new FormData(e.target);
+      const { fullName, phone, email, password, passwordConf } =
+        Object.fromEntries(formData);
 
-    // try {
-    //   const { data } = await post("user-management/authentication/signin", {
-    //     email,
-    //     password,
-    //   });
-    //   cl(data);
-    // } catch (error) {
-    //   cl(error);
-    //   setErrMessage(error?.message);
-    // }
+      if (password !== passwordConf)
+        return setErrMessage("Password dan konfirmasi password tidak sama");
+      const data = await addUser({
+        fullName,
+        phone,
+        email,
+        password,
+        roleIds,
+      });
+      cl(data);
+      if (data?.status === "OK") setOpenDialog(false);
+    } catch (error) {
+      setErrMessage(error?.message);
+    }
+  };
+
+  const handleEditUser = async (e) => {
+    e.preventDefault();
+    try {
+      const formData = new FormData(e.target);
+      const { fullName, phone, email } = Object.fromEntries(formData);
+
+      const data = await editUser(detailUser?.id, {
+        fullName,
+        phone,
+        email,
+        roleIds,
+      });
+      cl(data);
+      if (data?.status === "OK") setOpenDialog(false);
+    } catch (error) {
+      cl("error");
+      cl(error);
+      setErrMessage(error?.message);
+    }
+  };
+
+  const handleDelUser = async () => {
+    try {
+      const data = await delUser(detailUser?.id);
+      cl(data);
+    } catch (error) {
+      cl(error?.message);
+    }
   };
 
   const table = useReactTable({
@@ -183,6 +220,179 @@ export default function ListPenggunaComponent({
 
   return (
     <>
+      <AlertDialog
+        open={openAlert}
+        onOpenChange={(val) => {
+          if (!val) {
+            setDetailUser({});
+          }
+          setOpenAlert(val);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Apakah Anda yakin akan menghapus akun ini?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Periksa kembali, karena hal ini akan menghapus data pengguna yang
+              dipilih secara permanen.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive"
+              onClick={() => handleDelUser()}
+            >
+              Hapus
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <Dialog
+        open={openDialog}
+        onOpenChange={(val) => {
+          if (!val) {
+            setErrMessage("");
+            setRoleIds([]);
+            setDetailUser({});
+          }
+          setOpenDialog(val);
+        }}
+      >
+        <DialogContent className="sm:max-w-[625px]">
+          <DialogHeader>
+            <DialogTitle>
+              {detailUser?.id ? "Ubah Pengguna" : "Tambah Pengguna"}
+            </DialogTitle>
+          </DialogHeader>
+          <DialogDescription>
+            {detailUser?.id
+              ? "Perbaiki data pengguna"
+              : "Masukkan data pengguna baru"}
+            . Klik simpan ketika sudah selesai.
+          </DialogDescription>
+          <form onSubmit={detailUser?.id ? handleEditUser : handleAddUser}>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="fullName">Nama Lengkap</Label>
+                <Input
+                  defaultValue={detailUser?.fullName}
+                  onChange={() => setErrMessage("")}
+                  type="text"
+                  id="fullName"
+                  name="fullName"
+                  placeholder="Nama Lengkap Pengguna"
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="phone">No. Telepon</Label>
+                <Input
+                  defaultValue={detailUser?.phone}
+                  onChange={() => setErrMessage("")}
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  placeholder="No. Telepon Pengguna"
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  defaultValue={detailUser?.email}
+                  onChange={() => setErrMessage("")}
+                  type="email"
+                  id="email"
+                  name="email"
+                  placeholder="Email Pengguna"
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="role">Role Pengguna</Label>
+                <Combobox
+                  id="role"
+                  value={roleIds}
+                  onValueChange={setRoleIds}
+                  className="w-full col-span-3"
+                  multiple
+                >
+                  <ComboboxAnchor className="h-full min-h-10 flex-wrap px-3 py-2">
+                    <ComboboxBadgeList>
+                      {roleIds.map((item) => {
+                        const option = listRole.find(
+                          (role) => role.id === item
+                        );
+                        if (!option) return null;
+
+                        return (
+                          <ComboboxBadgeItem key={item} value={item}>
+                            {option.name}
+                          </ComboboxBadgeItem>
+                        );
+                      })}
+                    </ComboboxBadgeList>
+                    <ComboboxInput
+                      placeholder="Pilih role pengguna..."
+                      className="h-auto min-w-20 flex-1"
+                    />
+                    <ComboboxTrigger className="absolute top-3 right-2">
+                      <ChevronDown className="h-4 w-4" />
+                    </ComboboxTrigger>
+                  </ComboboxAnchor>
+                  <ComboboxContent>
+                    <ComboboxEmpty>Role tidak ditemukan.</ComboboxEmpty>
+                    {listRole.map((role) => (
+                      <ComboboxItem key={role.id} value={role.id}>
+                        {role.name}
+                      </ComboboxItem>
+                    ))}
+                  </ComboboxContent>
+                </Combobox>
+              </div>
+              {!detailUser?.id && (
+                <>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      onChange={() => setErrMessage("")}
+                      type="password"
+                      id="password"
+                      name="password"
+                      placeholder="Password Pengguna"
+                      className="col-span-3"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="passwordConf">Konfirmasi Password</Label>
+                    <Input
+                      onChange={() => setErrMessage("")}
+                      type="password"
+                      id="passwordConf"
+                      name="passwordConf"
+                      placeholder="Konfirmasi Password Pengguna"
+                      className="col-span-3"
+                    />
+                  </div>
+                </>
+              )}
+              {errMessage !== "" && (
+                <div className="p-2 rounded-md text-center border border-destructive-foreground text-destructive">
+                  {errMessage}
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="secondary" type="submit">
+                Simpan
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">List Pengguna</h2>
       </div>
@@ -201,141 +411,13 @@ export default function ListPenggunaComponent({
                   }
                   className="max-w-sm"
                 />
-                <Dialog
-                  open={openDialog}
-                  onOpenChange={(val) => {
-                    if (val) {
-                      setRoles([]);
-                      setErrMessage("");
-                    }
-                    setOpenDialog(val);
-                  }}
+                <Button
+                  variant="secondary"
+                  className="ml-auto"
+                  onClick={() => setOpenDialog(true)}
                 >
-                  <DialogTrigger asChild>
-                    <Button variant="secondary" className="ml-auto">
-                      Tambah Pengguna
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[625px]">
-                    <DialogHeader>
-                      <DialogTitle>Tambah Pengguna</DialogTitle>
-                    </DialogHeader>
-                    <DialogDescription>
-                      Masukkan data pengguna baru. Klik simpan ketika sudah
-                      selesai.
-                    </DialogDescription>
-                    <form onSubmit={handleAddUser}>
-                      <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="fullName">Nama Lengkap</Label>
-                          <Input
-                            type="text"
-                            id="fullName"
-                            name="fullName"
-                            placeholder="Nama Lengkap Pengguna"
-                            className="col-span-3"
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="phone">No. Telepon</Label>
-                          <Input
-                            type="tel"
-                            id="phone"
-                            name="phone"
-                            placeholder="No. Telepon Pengguna"
-                            className="col-span-3"
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="email">Email</Label>
-                          <Input
-                            type="email"
-                            id="email"
-                            name="email"
-                            placeholder="Email Pengguna"
-                            className="col-span-3"
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="role">Role Pengguna</Label>
-                          <Combobox
-                            id="role"
-                            value={roles}
-                            onValueChange={setRoles}
-                            className="w-full col-span-3"
-                            multiple
-                          >
-                            <ComboboxAnchor className="h-full min-h-10 flex-wrap px-3 py-2">
-                              <ComboboxBadgeList>
-                                {roles.map((item) => {
-                                  const option = listRole.find(
-                                    (role) => role.id === item
-                                  );
-                                  if (!option) return null;
-
-                                  return (
-                                    <ComboboxBadgeItem key={item} value={item}>
-                                      {option.name}
-                                    </ComboboxBadgeItem>
-                                  );
-                                })}
-                              </ComboboxBadgeList>
-                              <ComboboxInput
-                                placeholder="Pilih role pengguna..."
-                                className="h-auto min-w-20 flex-1"
-                              />
-                              <ComboboxTrigger className="absolute top-3 right-2">
-                                <ChevronDown className="h-4 w-4" />
-                              </ComboboxTrigger>
-                            </ComboboxAnchor>
-                            <ComboboxContent>
-                              <ComboboxEmpty>
-                                Role tidak ditemukan.
-                              </ComboboxEmpty>
-                              {listRole.map((role) => (
-                                <ComboboxItem key={role.id} value={role.id}>
-                                  {role.name}
-                                </ComboboxItem>
-                              ))}
-                            </ComboboxContent>
-                          </Combobox>
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="password">Password</Label>
-                          <Input
-                            type="password"
-                            id="password"
-                            name="password"
-                            placeholder="Password Pengguna"
-                            className="col-span-3"
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="passwordConf">
-                            Konfirmasi Password
-                          </Label>
-                          <Input
-                            type="password"
-                            id="passwordConf"
-                            name="passwordConf"
-                            placeholder="Konfirmasi Password Pengguna"
-                            className="col-span-3"
-                          />
-                        </div>
-                        {errMessage !== "" && (
-                          <div className="p-2 rounded-md text-center border border-destructive-foreground text-destructive">
-                            {errMessage}
-                          </div>
-                        )}
-                      </div>
-                      <DialogFooter>
-                        <Button variant="secondary" type="submit">
-                          Simpan
-                        </Button>
-                      </DialogFooter>
-                    </form>
-                  </DialogContent>
-                </Dialog>
+                  Tambah Pengguna
+                </Button>
               </div>
               <div className="rounded-md border">
                 <Table>
