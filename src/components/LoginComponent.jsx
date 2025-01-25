@@ -1,8 +1,6 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,7 +12,6 @@ export default function LoginComponent({
   setErrMessage,
   errMessage,
 }) {
-  const [showPassword, setShowPassword] = useState(false);
   return (
     <div className="flex flex-col gap-6">
       <Card className="overflow-hidden">

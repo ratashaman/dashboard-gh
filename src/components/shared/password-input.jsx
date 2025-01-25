@@ -8,9 +8,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 const PasswordInput = React.forwardRef(({ className, ...props }, ref) => {
-  const [showPassword, setShowPassword] = React.useState(true);
-  const disabled =
-    props.value === "" || props.value === undefined || props.disabled;
+  const [showPassword, setShowPassword] = React.useState(false);
 
   return (
     <div className="relative">
@@ -26,7 +24,6 @@ const PasswordInput = React.forwardRef(({ className, ...props }, ref) => {
         size="sm"
         className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent hover:text-primary"
         onClick={() => setShowPassword((prev) => !prev)}
-        // disabled={disabled}
       >
         {showPassword ? (
           <EyeIcon className="h-4 w-4" aria-hidden="true" />

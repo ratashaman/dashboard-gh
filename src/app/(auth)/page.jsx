@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { post } from "@/lib/services";
 import { cl } from "@/lib/logger";
 import { setStorages } from "@/lib/storage";
+import { validateEmail } from "@/lib/utils";
 import LoginComponent from "@/components/LoginComponent";
 
 export default function LoginPage() {
@@ -15,6 +16,11 @@ export default function LoginPage() {
     e.preventDefault();
     const formData = new FormData(e.target);
     const { email, password } = Object.fromEntries(formData);
+    if (!validateEmail(email)) {
+      return setErrMessage(
+        "Format email tidak sesuai, silakan periksa kembali"
+      );
+    }
 
     try {
       const { data } = await post("user-management/authentication/signin", {
@@ -30,7 +36,8 @@ export default function LoginPage() {
     } catch (error) {
       cl(error);
       setErrMessage(
-        error?.message || "Terjadi kesalahan, silakan coba kembali"
+        error?.message ||
+          "Terjadi kesalahan, silakan coba kembali beberapa saat"
       );
     }
   };

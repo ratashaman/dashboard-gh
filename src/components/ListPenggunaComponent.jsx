@@ -19,6 +19,7 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/shared/password-input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import {
@@ -73,6 +74,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import LoadingScreen from "@/components/shared/loadingScreen";
 import { cl } from "@/lib/logger";
+import { validateEmail } from "@/lib/utils";
 
 export default function ListPenggunaComponent({
   listUser,
@@ -162,6 +164,13 @@ export default function ListPenggunaComponent({
 
       if (password !== passwordConf)
         return setErrMessage("Password dan konfirmasi password tidak sama");
+
+      if (!validateEmail(email)) {
+        return setErrMessage(
+          "Format email tidak sesuai, silakan periksa kembali"
+        );
+      }
+
       const data = await addUser({
         fullName,
         phone,
@@ -181,6 +190,12 @@ export default function ListPenggunaComponent({
     try {
       const formData = new FormData(e.target);
       const { fullName, phone, email } = Object.fromEntries(formData);
+
+      if (!validateEmail(email)) {
+        return setErrMessage(
+          "Format email tidak sesuai, silakan periksa kembali"
+        );
+      }
 
       const data = await editUser(detailUser?.id, {
         fullName,
@@ -357,9 +372,8 @@ export default function ListPenggunaComponent({
                 <>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="password">Password</Label>
-                    <Input
-                      onChange={() => setErrMessage("")}
-                      type="password"
+                    <PasswordInput
+                      onChange={(e) => setErrMessage("")}
                       id="password"
                       name="password"
                       placeholder="Password Pengguna"
@@ -368,9 +382,8 @@ export default function ListPenggunaComponent({
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="passwordConf">Konfirmasi Password</Label>
-                    <Input
-                      onChange={() => setErrMessage("")}
-                      type="password"
+                    <PasswordInput
+                      onChange={(e) => setErrMessage("")}
                       id="passwordConf"
                       name="passwordConf"
                       placeholder="Konfirmasi Password Pengguna"
