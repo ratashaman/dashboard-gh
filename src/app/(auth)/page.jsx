@@ -29,7 +29,9 @@ export default function LoginPage() {
       router.push("/dashboard/ringkasan");
     } catch (error) {
       cl(error);
-      setErrMessage(error?.message);
+      setErrMessage(
+        error?.message || "Terjadi kesalahan, silakan coba kembali"
+      );
     }
   };
 
