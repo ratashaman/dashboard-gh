@@ -1,13 +1,18 @@
 pipeline {
     agent any
 
+    environment {
+        // Set environment variables for reuse
+        SSH_OPTIONS = "-o StrictHostKeyChecking=no"
+    }
+
     stages {
         stage('Pull Code') {
             steps {
                 echo "Pulling the latest code from GitHub..."
                 sshagent(credentials: ['ssh-server-key']) {
                     sh """
-                        ssh -o StrictHostKeyChecking=no ${env.USERNAME_SERVER}@${env.HOSTNAME_SERVER} \\
+                        ssh ${env.SSH_OPTIONS} ${env.USERNAME_SERVER}@${env.HOSTNAME_SERVER} \\
                         "cd ${env.SERVICE_DIR}/frontend/dashboard && git pull"
                     """
                 }
@@ -19,7 +24,7 @@ pipeline {
                 echo "Building Docker image with a unique tag..."
                 sshagent(credentials: ['ssh-server-key']) {
                     sh """
-                        ssh -o StrictHostKeyChecking=no ${env.USERNAME_SERVER}@${env.HOSTNAME_SERVER} \\
+                        ssh ${env.SSH_OPTIONS} ${env.USERNAME_SERVER}@${env.HOSTNAME_SERVER} \\
                         "cd ${env.SERVICE_DIR}/frontend/dashboard && \\
                         GIT_SHA=\$(git rev-parse --short HEAD) && \\
                         docker build -t dashboard-service:\$GIT_SHA . && \\
@@ -34,8 +39,9 @@ pipeline {
                 echo "Updating the running container..."
                 sshagent(credentials: ['ssh-server-key']) {
                     sh """
-                        ssh -o StrictHostKeyChecking=no ${env.USERNAME_SERVER}@${env.HOSTNAME_SERVER} \\
-                        "GIT_SHA=\$(cat ${env.SERVICE_DIR}/frontend/dashboard/current_sha.txt) && \\
+                        ssh ${env.SSH_OPTIONS} ${env.USERNAME_SERVER}@${env.HOSTNAME_SERVER} \\
+                        "cd ${env.SERVICE_DIR}/frontend/dashboard && \\
+                        GIT_SHA=\$(cat current_sha.txt) && \\
                         docker ps --filter 'name=dashboard-service' --format '{{.ID}}' | xargs --no-run-if-empty docker stop && \\
                         docker ps -a --filter 'name=dashboard-service' --format '{{.ID}}' | xargs --no-run-if-empty docker rm && \\
                         docker run -d --name dashboard-service -p 3000:3000 dashboard-service:\$GIT_SHA"
@@ -46,10 +52,10 @@ pipeline {
 
         stage('Clean Up') {
             steps {
-                echo "Cleaning up unused Docker images..."
+                echo "Cleaning up unused Docker resources..."
                 sshagent(credentials: ['ssh-server-key']) {
                     sh """
-                        ssh -o StrictHostKeyChecking=no ${env.USERNAME_SERVER}@${env.HOSTNAME_SERVER} \\
+                        ssh ${env.SSH_OPTIONS} ${env.USERNAME_SERVER}@${env.HOSTNAME_SERVER} \\
                         "docker image prune -a -f && \\
                         docker container prune -f && \\
                         docker volume prune -f && \\
