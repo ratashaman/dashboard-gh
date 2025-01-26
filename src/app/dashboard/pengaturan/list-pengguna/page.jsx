@@ -24,7 +24,10 @@ export default function ListPenggunaPage() {
     try {
       const { data } = await get("user-management/internal/roles");
       cl(data);
-      setListRole(data.data.items);
+      const reformatList = data.data.items.map((item) => {
+        return { value: item.id, label: item.name };
+      });
+      setListRole(reformatList);
     } catch (error) {
       cl(error);
     }

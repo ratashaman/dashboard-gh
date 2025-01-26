@@ -52,17 +52,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Combobox,
-  ComboboxAnchor,
-  ComboboxBadgeItem,
-  ComboboxBadgeList,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxTrigger,
-} from "@/components/ui/combobox";
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -72,9 +61,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import SelectSearch from "react-tailwindcss-select";
 import LoadingScreen from "@/components/shared/loadingScreen";
 import { cl } from "@/lib/logger";
-import { validateEmail } from "@/lib/utils";
+import { validateEmail, validatePhone } from "@/lib/utils";
 
 export default function ListPenggunaComponent({
   listUser,
@@ -87,7 +77,7 @@ export default function ListPenggunaComponent({
   const [openDialog, setOpenDialog] = useState(false);
   const [openAlert, setOpenAlert] = useState(false);
   const [errMessage, setErrMessage] = useState("");
-  const [roleIds, setRoleIds] = useState([]);
+  const [roleIds, setRoleIds] = useState(null);
   const [detailUser, setDetailUser] = useState({});
 
   const columns = [
@@ -132,7 +122,9 @@ export default function ListPenggunaComponent({
             <DropdownMenuContent align="end">
               <DropdownMenuItem
                 onClick={() => {
-                  const roles = detail.roles.map((item) => item.id);
+                  const roles = detail.roles.map((item) => {
+                    return { value: item.id, label: item.name };
+                  });
                   setRoleIds(roles);
                   setDetailUser(detail);
                   setOpenDialog(true);
@@ -162,6 +154,10 @@ export default function ListPenggunaComponent({
       const { fullName, phone, email, password, passwordConf } =
         Object.fromEntries(formData);
 
+      if (fullName === "") {
+        return setErrMessage("Nama lengkap pengguna tidak boleh kosong");
+      }
+
       if (password !== passwordConf)
         return setErrMessage("Password dan konfirmasi password tidak sama");
 
@@ -171,15 +167,29 @@ export default function ListPenggunaComponent({
         );
       }
 
+      if (!validatePhone(phone)) {
+        return setErrMessage(
+          "Format telepon tidak sesuai, silakan periksa kembali"
+        );
+      }
+
+      if (roleIds === null || !roleIds?.length) {
+        return setErrMessage("Role pengguna tidak boleh kosong");
+      }
+
+      const reformatList = roleIds.map((item) => {
+        return item.value;
+      });
+
       const data = await addUser({
         fullName,
         phone,
         email,
         password,
-        roleIds,
+        roleIds: reformatList,
       });
       cl(data);
-      if (data?.status === "OK") setOpenDialog(false);
+      if (data?.status === "OK") handleCloseDialog();
     } catch (error) {
       setErrMessage(error?.message);
     }
@@ -191,20 +201,38 @@ export default function ListPenggunaComponent({
       const formData = new FormData(e.target);
       const { fullName, phone, email } = Object.fromEntries(formData);
 
+      if (fullName === "") {
+        return setErrMessage("Nama lengkap pengguna tidak boleh kosong");
+      }
+
       if (!validateEmail(email)) {
         return setErrMessage(
           "Format email tidak sesuai, silakan periksa kembali"
         );
       }
 
+      if (!validatePhone(phone)) {
+        return setErrMessage(
+          "Format telepon tidak sesuai, silakan periksa kembali"
+        );
+      }
+
+      if (roleIds === null || !roleIds?.length) {
+        return setErrMessage("Role pengguna tidak boleh kosong");
+      }
+
+      const reformatList = roleIds.map((item) => {
+        return item.value;
+      });
+
       const data = await editUser(detailUser?.id, {
         fullName,
         phone,
         email,
-        roleIds,
+        roleIds: reformatList,
       });
       cl(data);
-      if (data?.status === "OK") setOpenDialog(false);
+      if (data?.status === "OK") handleCloseDialog();
     } catch (error) {
       cl("error");
       cl(error);
@@ -216,9 +244,17 @@ export default function ListPenggunaComponent({
     try {
       const data = await delUser(detailUser?.id);
       cl(data);
+      setDetailUser({});
     } catch (error) {
       cl(error?.message);
     }
+  };
+
+  const handleCloseDialog = () => {
+    setErrMessage("");
+    setRoleIds(null);
+    setDetailUser({});
+    setOpenDialog(false);
   };
 
   const table = useReactTable({
@@ -270,7 +306,7 @@ export default function ListPenggunaComponent({
         onOpenChange={(val) => {
           if (!val) {
             setErrMessage("");
-            setRoleIds([]);
+            setRoleIds(null);
             setDetailUser({});
           }
           setOpenDialog(val);
@@ -298,8 +334,8 @@ export default function ListPenggunaComponent({
                   type="text"
                   id="fullName"
                   name="fullName"
-                  placeholder="Nama Lengkap Pengguna"
-                  className="col-span-3"
+                  placeholder="Contoh: Siti Nurhayati"
+                  className="col-span-3 bg-white"
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -310,8 +346,8 @@ export default function ListPenggunaComponent({
                   type="tel"
                   id="phone"
                   name="phone"
-                  placeholder="No. Telepon Pengguna"
-                  className="col-span-3"
+                  placeholder="Contoh: +6281234567890"
+                  className="col-span-3 bg-white"
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -322,51 +358,28 @@ export default function ListPenggunaComponent({
                   type="email"
                   id="email"
                   name="email"
-                  placeholder="Email Pengguna"
-                  className="col-span-3"
+                  placeholder="Contoh: siti.nurhayati@gmail.com"
+                  className="col-span-3 bg-white"
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="role">Role Pengguna</Label>
-                <Combobox
-                  id="role"
-                  value={roleIds}
-                  onValueChange={setRoleIds}
-                  className="w-full col-span-3"
-                  multiple
-                >
-                  <ComboboxAnchor className="h-full min-h-10 flex-wrap px-3 py-2">
-                    <ComboboxBadgeList>
-                      {roleIds.map((item) => {
-                        const option = listRole.find(
-                          (role) => role.id === item
-                        );
-                        if (!option) return null;
-
-                        return (
-                          <ComboboxBadgeItem key={item} value={item}>
-                            {option.name}
-                          </ComboboxBadgeItem>
-                        );
-                      })}
-                    </ComboboxBadgeList>
-                    <ComboboxInput
-                      placeholder="Pilih role pengguna..."
-                      className="h-auto min-w-20 flex-1"
-                    />
-                    <ComboboxTrigger className="absolute top-3 right-2">
-                      <ChevronDown className="h-4 w-4" />
-                    </ComboboxTrigger>
-                  </ComboboxAnchor>
-                  <ComboboxContent>
-                    <ComboboxEmpty>Role tidak ditemukan.</ComboboxEmpty>
-                    {listRole.map((role) => (
-                      <ComboboxItem key={role.id} value={role.id}>
-                        {role.name}
-                      </ComboboxItem>
-                    ))}
-                  </ComboboxContent>
-                </Combobox>
+                <div className="col-span-3">
+                  <SelectSearch
+                    primaryColor={"sky"}
+                    isSearchable={true}
+                    isClearable={true}
+                    isMultiple={true}
+                    placeholder="Pilih role pengguna..."
+                    searchInputPlaceholder="Cari role pengguna..."
+                    noOptionsMessage="Data tidak ditemukan."
+                    value={roleIds}
+                    onChange={(v) => {
+                      setRoleIds(v);
+                    }}
+                    options={listRole}
+                  />
+                </div>
               </div>
               {!detailUser?.id && (
                 <>
@@ -376,8 +389,8 @@ export default function ListPenggunaComponent({
                       onChange={(e) => setErrMessage("")}
                       id="password"
                       name="password"
-                      placeholder="Password Pengguna"
-                      className="col-span-3"
+                      placeholder="Pastikan password aman dan mudah diingat"
+                      className="col-span-3 bg-white"
                     />
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
@@ -386,8 +399,8 @@ export default function ListPenggunaComponent({
                       onChange={(e) => setErrMessage("")}
                       id="passwordConf"
                       name="passwordConf"
-                      placeholder="Konfirmasi Password Pengguna"
-                      className="col-span-3"
+                      placeholder="Ketik ulang password diatas"
+                      className="col-span-3 bg-white"
                     />
                   </div>
                 </>
