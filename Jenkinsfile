@@ -8,7 +8,7 @@ pipeline {
                 sshagent(credentials: ['ssh-server-key']) {
                     sh """
                     ssh -o StrictHostKeyChecking=no ${env.USERNAME_SERVER}@${env.HOSTNAME_SERVER} << EOF
-                    cd ${env.SERVICE_DIR}/dashboard
+                    cd ${env.SERVICE_DIR}/frontend/dashboard
                     git pull
                     EOF
                     """
@@ -22,7 +22,7 @@ pipeline {
                 sshagent(credentials: ['ssh-server-key']) {
                     sh """
                     ssh -o StrictHostKeyChecking=no ${env.USERNAME_SERVER}@${env.HOSTNAME_SERVER} << EOF
-                    cd ${env.SERVICE_DIR}/dashboard
+                    cd ${env.SERVICE_DIR}/frontend/dashboard
                     GIT_SHA=\$(git rev-parse --short HEAD)
                     docker build -t dashboard-service:\$GIT_SHA .
                     echo \$GIT_SHA > current_sha.txt
@@ -38,7 +38,7 @@ pipeline {
                 sshagent(credentials: ['ssh-server-key']) {
                     sh """
                     ssh -o StrictHostKeyChecking=no ${env.USERNAME_SERVER}@${env.HOSTNAME_SERVER} << EOF
-                    GIT_SHA=\$(cat ${env.SERVICE_DIR}/dashboard/current_sha.txt)
+                    GIT_SHA=\$(cat ${env.SERVICE_DIR}/frontend/dashboard/current_sha.txt)
 
                     # Stop the current container
                     docker ps --filter "name=dashboard-service" --format "{{.ID}}" | xargs --no-run-if-empty docker stop
