@@ -1,5 +1,6 @@
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import dayjs from "dayjs";
 
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
@@ -17,4 +18,8 @@ export function validatePhone(phone) {
   return String(phone)
     .toLowerCase()
     .match(/^\+[1-9]\d{9,14}$/);
+}
+
+export function formatDate(date) {
+  return dayjs(date).format("DD-MMM-YYYY HH:mm:ss");
 }

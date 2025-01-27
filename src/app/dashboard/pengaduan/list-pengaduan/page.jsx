@@ -13,7 +13,9 @@ export default function ListPengaduanPage() {
 
   const getComplaint = async () => {
     try {
-      const { data } = await get("complaint-service/internals/complaints");
+      const { data } = await get("complaint-service/internals/complaints", {
+        page: -1,
+      });
       cl(data);
       setListComplaint(data.data);
     } catch (error) {
@@ -23,7 +25,9 @@ export default function ListPengaduanPage() {
 
   const getDepartment = async () => {
     try {
-      const { data } = await get("complaint-service/internals/departments");
+      const { data } = await get("complaint-service/internals/departments", {
+        page: -1,
+      });
       cl(data);
       const reformatList = data.data.items.map((item) => {
         return { value: item.id, label: item.name };
@@ -36,7 +40,10 @@ export default function ListPengaduanPage() {
 
   const getType = async () => {
     try {
-      const { data } = await get("complaint-service/internals/complaint-types");
+      const { data } = await get(
+        "complaint-service/internals/complaint-types",
+        { page: -1 }
+      );
       cl(data);
       const reformatList = data.data.items.map((item) => {
         return { value: item.id, label: item.name };

@@ -2,52 +2,23 @@
 
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  MoreHorizontal,
-} from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/shared/password-input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import DeleteAlert from "@/components/shared/delete-alert";
-import ModalForm from "./shared/modalForm";
+import ModalForm from "@/components/shared/modal-form";
+import DataTable from "@/components/shared/data-table";
 import SelectSearch from "react-tailwindcss-select";
 import LoadingScreen from "@/components/shared/loadingScreen";
 import { cl } from "@/lib/logger";
-import { validateEmail, validatePhone } from "@/lib/utils";
+import { validateEmail, validatePhone, formatDate } from "@/lib/utils";
 
 export default function ListPengaduanComponent({
   listComplaint,
@@ -61,8 +32,37 @@ export default function ListPengaduanComponent({
   const [openDialog, setOpenDialog] = useState(false);
   const [openAlert, setOpenAlert] = useState(false);
   const [errMessage, setErrMessage] = useState("");
-  const [roleIds, setRoleIds] = useState(null);
-  const [detailUser, setDetailUser] = useState({});
+  const [type, setType] = useState(null);
+  const [department, setDepartment] = useState(null);
+  const [status, setStatus] = useState(null);
+  const [detailComplaint, setDetailComplaint] = useState({});
+
+  const complaintStatus = [
+    {
+      value: "COMPLAINT_DRAFT",
+      label: "Pengajuan Awal",
+    },
+    {
+      value: "COMPLAINT_VALIDATION_PROCESS",
+      label: "Proses Validasi",
+    },
+    {
+      value: "COMPLAINT_VALIDATED",
+      label: "Validasi Selesai",
+    },
+    {
+      value: "COMPLAINT_DELIVERED",
+      label: "Diterima",
+    },
+    {
+      value: "COMPLAINT_FINISH",
+      label: "Selesai",
+    },
+    {
+      value: "COMPLAINT_REJECT",
+      label: "Ditolak",
+    },
+  ];
 
   const columns = [
     {
@@ -83,14 +83,19 @@ export default function ListPengaduanComponent({
       accessorKey: "createdAt",
       header: "Tanggal",
       cell: ({ row }) => (
-        <div className="capitalize">{row.getValue("createdAt")}</div>
+        <div className="">{formatDate(row.getValue("createdAt"))}</div>
       ),
     },
     {
       accessorKey: "status",
       header: "Status",
       cell: ({ row }) => (
-        <div className="capitalize">{row.getValue("status")}</div>
+        <div className="capitalize">
+          {
+            complaintStatus.find((a) => a.value === row.getValue("status"))
+              ?.label
+          }
+        </div>
       ),
     },
     {
@@ -108,11 +113,19 @@ export default function ListPengaduanComponent({
             <DropdownMenuContent align="end">
               <DropdownMenuItem
                 onClick={() => {
-                  const roles = detail.roles.map((item) => {
-                    return { value: item.id, label: item.name };
-                  });
-                  setRoleIds(roles);
-                  setDetailUser(detail);
+                  const type = listType.find(
+                    (item) => item.value === detail?.complaintType?.id
+                  );
+                  const department = listDepartment.find(
+                    (item) => item.value === detail?.relatedDepartment?.id
+                  );
+                  const status = complaintStatus.find(
+                    (item) => item.value === detail?.status
+                  );
+                  setType(type);
+                  setDepartment(department);
+                  setStatus(status);
+                  setDetailComplaint(detail);
                   setOpenDialog(true);
                 }}
               >
@@ -120,11 +133,11 @@ export default function ListPengaduanComponent({
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
-                  const roles = detail.roles.map((item) => {
-                    return { value: item.id, label: item.name };
-                  });
-                  setRoleIds(roles);
-                  setDetailUser(detail);
+                  const status = complaintStatus.find(
+                    (item) => item.value === detail?.status
+                  );
+                  setStatus(status);
+                  setDetailComplaint(detail);
                   setOpenDialog(true);
                 }}
               >
@@ -132,7 +145,7 @@ export default function ListPengaduanComponent({
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
-                  setDetailUser(detail);
+                  setDetailComplaint(detail);
                   setOpenAlert(true);
                 }}
               >
@@ -145,89 +158,53 @@ export default function ListPengaduanComponent({
     },
   ];
 
-  const handleAddUser = async (e) => {
+  const handleEditComplaint = async (e) => {
     e.preventDefault();
     try {
       const formData = new FormData(e.target);
-      const { fullName, phone, email, password, passwordConf } =
-        Object.fromEntries(formData);
+      const { title } = Object.fromEntries(formData);
 
-      if (fullName === "") {
-        return setErrMessage("Nama lengkap pengguna tidak boleh kosong");
+      if (title === "") {
+        return setErrMessage("Judul pengaduan tidak boleh kosong");
       }
 
-      if (password !== passwordConf)
-        return setErrMessage("Password dan konfirmasi password tidak sama");
-
-      if (!validateEmail(email)) {
-        return setErrMessage(
-          "Format email tidak sesuai, silakan periksa kembali"
-        );
+      if (type === null) {
+        return setErrMessage("Jenis pengaduan tidak boleh kosong");
       }
 
-      if (!validatePhone(phone)) {
-        return setErrMessage(
-          "Format telepon tidak sesuai, silakan periksa kembali"
-        );
+      if (department === null) {
+        return setErrMessage("Departemen tidak boleh kosong");
       }
 
-      if (roleIds === null || !roleIds?.length) {
-        return setErrMessage("Role pengguna tidak boleh kosong");
+      if (status === null) {
+        return setErrMessage("Status pengaduan tidak boleh kosong");
       }
 
-      const reformatList = roleIds.map((item) => {
-        return item.value;
-      });
-
-      const data = await addUser({
-        fullName,
-        phone,
-        email,
-        password,
-        roleIds: reformatList,
+      const data = await editComplaint(detailComplaint?.id, {
+        citizenId: detailComplaint?.citizenId,
+        complaintTypeId: type?.value,
+        title,
+        relatedDepartmentId: department?.value,
+        status: status?.value,
       });
       cl(data);
       if (data?.status === "OK") handleCloseDialog();
     } catch (error) {
+      cl("error");
+      cl(error);
       setErrMessage(error?.message);
     }
   };
 
-  const handleEditUser = async (e) => {
+  const handleEditStatus = async (e) => {
     e.preventDefault();
     try {
-      const formData = new FormData(e.target);
-      const { fullName, phone, email } = Object.fromEntries(formData);
-
-      if (fullName === "") {
-        return setErrMessage("Nama lengkap pengguna tidak boleh kosong");
+      if (status === null) {
+        return setErrMessage("Status pengaduan tidak boleh kosong");
       }
 
-      if (!validateEmail(email)) {
-        return setErrMessage(
-          "Format email tidak sesuai, silakan periksa kembali"
-        );
-      }
-
-      if (!validatePhone(phone)) {
-        return setErrMessage(
-          "Format telepon tidak sesuai, silakan periksa kembali"
-        );
-      }
-
-      if (roleIds === null || !roleIds?.length) {
-        return setErrMessage("Role pengguna tidak boleh kosong");
-      }
-
-      const reformatList = roleIds.map((item) => {
-        return item.value;
-      });
-
-      const data = await editUser(detailUser?.id, {
-        fullName,
-        phone,
-        email,
-        roleIds: reformatList,
+      const data = await editStatus(detailComplaint?.id, {
+        status: status?.value,
       });
       cl(data);
       if (data?.status === "OK") handleCloseDialog();
@@ -240,9 +217,9 @@ export default function ListPengaduanComponent({
 
   const handleDelUser = async () => {
     try {
-      const data = await delUser(detailUser?.id);
+      const data = await delComplaint(detailComplaint?.id);
       cl(data);
-      setDetailUser({});
+      setDetailComplaint({});
     } catch (error) {
       cl(error?.message);
     }
@@ -250,20 +227,12 @@ export default function ListPengaduanComponent({
 
   const handleCloseDialog = () => {
     setErrMessage("");
-    setRoleIds(null);
-    setDetailUser({});
+    setType(null);
+    setDepartment(null);
+    setStatus(null);
+    setDetailComplaint({});
     setOpenDialog(false);
   };
-
-  const table = useReactTable({
-    data: listComplaint?.items || [],
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    state: {},
-  });
 
   if (isLoading) return <LoadingScreen />;
 
@@ -273,7 +242,7 @@ export default function ListPengaduanComponent({
         open={openAlert}
         onOpenChange={(val) => {
           if (!val) {
-            setDetailUser({});
+            setDetailComplaint({});
           }
           setOpenAlert(val);
         }}
@@ -285,100 +254,90 @@ export default function ListPengaduanComponent({
         open={openDialog}
         onOpenChange={(val) => {
           if (!val) {
-            setErrMessage("");
-            setRoleIds(null);
-            setDetailUser({});
+            handleCloseDialog();
           }
           setOpenDialog(val);
         }}
-        onSubmit={detailUser?.id ? handleEditUser : handleAddUser}
-        title={detailUser?.id ? "Ubah Pengguna" : "Tambah Pengguna"}
-        description={
-          detailUser?.id
-            ? "Perbaiki data pengguna"
-            : "Masukkan data pengguna baru" +
-              ". Klik simpan ketika sudah selesai."
+        onSubmit={
+          type !== null && department !== null
+            ? handleEditComplaint
+            : handleEditStatus
         }
+        title="Ubah Pengaduan"
+        description="Perbaiki data pengaduan. Klik simpan ketika sudah selesai."
       >
+        {type !== null && department !== null && (
+          <>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="title">Judul</Label>
+              <Input
+                defaultValue={detailComplaint?.title}
+                onChange={() => setErrMessage("")}
+                type="text"
+                id="title"
+                name="title"
+                className="col-span-3 bg-white"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="role">Jenis</Label>
+              <div className="col-span-3">
+                <SelectSearch
+                  primaryColor={"sky"}
+                  isSearchable={true}
+                  isClearable={false}
+                  isMultiple={false}
+                  placeholder="Pilih jenis pengaduan..."
+                  searchInputPlaceholder="Cari jenis pengaduan..."
+                  noOptionsMessage="Data tidak ditemukan."
+                  value={type}
+                  onChange={(v) => {
+                    setType(v);
+                  }}
+                  options={listType}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="role">Departemen</Label>
+              <div className="col-span-3">
+                <SelectSearch
+                  primaryColor={"sky"}
+                  isSearchable={true}
+                  isClearable={false}
+                  isMultiple={false}
+                  placeholder="Pilih departemen pengaduan..."
+                  searchInputPlaceholder="Cari departemen pengaduan..."
+                  noOptionsMessage="Data tidak ditemukan."
+                  value={department}
+                  onChange={(v) => {
+                    setDepartment(v);
+                  }}
+                  options={listDepartment}
+                />
+              </div>
+            </div>
+          </>
+        )}
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="fullName">Nama Lengkap</Label>
-          <Input
-            defaultValue={detailUser?.fullName}
-            onChange={() => setErrMessage("")}
-            type="text"
-            id="fullName"
-            name="fullName"
-            placeholder="Contoh: Siti Nurhayati"
-            className="col-span-3 bg-white"
-          />
-        </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="phone">No. Telepon</Label>
-          <Input
-            defaultValue={detailUser?.phone}
-            onChange={() => setErrMessage("")}
-            type="tel"
-            id="phone"
-            name="phone"
-            placeholder="Contoh: +6281234567890"
-            className="col-span-3 bg-white"
-          />
-        </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            defaultValue={detailUser?.email}
-            onChange={() => setErrMessage("")}
-            type="email"
-            id="email"
-            name="email"
-            placeholder="Contoh: siti.nurhayati@gmail.com"
-            className="col-span-3 bg-white"
-          />
-        </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="role">Role Pengguna</Label>
+          <Label htmlFor="role">Status</Label>
           <div className="col-span-3">
             <SelectSearch
               primaryColor={"sky"}
               isSearchable={true}
-              isClearable={true}
-              isMultiple={true}
-              placeholder="Pilih role pengguna..."
-              searchInputPlaceholder="Cari role pengguna..."
+              isClearable={false}
+              isMultiple={false}
+              placeholder="Pilih status pengaduan..."
+              searchInputPlaceholder="Cari status pengaduan..."
               noOptionsMessage="Data tidak ditemukan."
-              value={roleIds}
+              value={status}
               onChange={(v) => {
-                setRoleIds(v);
+                setStatus(v);
               }}
-              options={[]}
+              options={complaintStatus}
             />
           </div>
         </div>
-        {!detailUser?.id && (
-          <>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="password">Password</Label>
-              <PasswordInput
-                onChange={(e) => setErrMessage("")}
-                id="password"
-                name="password"
-                placeholder="Pastikan password aman dan mudah diingat"
-                className="col-span-3 bg-white"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="passwordConf">Konfirmasi Password</Label>
-              <PasswordInput
-                onChange={(e) => setErrMessage("")}
-                id="passwordConf"
-                name="passwordConf"
-                placeholder="Ketik ulang password diatas"
-                className="col-span-3 bg-white"
-              />
-            </div>
-          </>
-        )}
         {errMessage !== "" && (
           <div className="p-2 rounded-md text-center border border-destructive-foreground text-destructive">
             {errMessage}
@@ -391,138 +350,12 @@ export default function ListPengaduanComponent({
       <div className="grid gap-4 grid-cols-1">
         <Card>
           <CardContent>
-            <div className="w-full">
-              <div className="flex items-center py-4">
-                <Input
-                  placeholder="Cari pengaduan..."
-                  value={table.getColumn("title")?.getFilterValue() ?? ""}
-                  onChange={(event) =>
-                    table.getColumn("title")?.setFilterValue(event.target.value)
-                  }
-                  className="max-w-sm"
-                />
-              </div>
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    {table.getHeaderGroups().map((headerGroup) => (
-                      <TableRow key={headerGroup.id}>
-                        {headerGroup.headers.map((header) => {
-                          return (
-                            <TableHead key={header.id}>
-                              {header.isPlaceholder
-                                ? null
-                                : flexRender(
-                                    header.column.columnDef.header,
-                                    header.getContext()
-                                  )}
-                            </TableHead>
-                          );
-                        })}
-                      </TableRow>
-                    ))}
-                  </TableHeader>
-                  <TableBody>
-                    {table.getRowModel().rows?.length ? (
-                      table.getRowModel().rows.map((row) => (
-                        <TableRow
-                          key={row.id}
-                          data-state={row.getIsSelected() && "selected"}
-                        >
-                          {row.getVisibleCells().map((cell) => (
-                            <TableCell key={cell.id}>
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext()
-                              )}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell
-                          colSpan={columns.length}
-                          className="h-24 text-center"
-                        >
-                          No results.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-              <div className="flex items-center justify-end mt-4">
-                <div className="flex items-center space-x-6 lg:space-x-8">
-                  <div className="flex items-center space-x-2">
-                    <p className="text-sm font-medium">Rows per page</p>
-                    <Select
-                      value={`${table.getState().pagination.pageSize}`}
-                      onValueChange={(value) => {
-                        table.setPageSize(Number(value));
-                      }}
-                    >
-                      <SelectTrigger className="h-8 w-[70px]">
-                        <SelectValue
-                          placeholder={table.getState().pagination.pageSize}
-                        />
-                      </SelectTrigger>
-                      <SelectContent side="top">
-                        {[5, 10, 20, 30, 40, 50].map((pageSize) => (
-                          <SelectItem key={pageSize} value={`${pageSize}`}>
-                            {pageSize}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-                    Page {table.getState().pagination.pageIndex + 1} of{" "}
-                    {table.getPageCount()}
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      className="hidden h-8 w-8 p-0 lg:flex"
-                      onClick={() => table.setPageIndex(0)}
-                      disabled={!table.getCanPreviousPage()}
-                    >
-                      <span className="sr-only">Go to first page</span>
-                      <ChevronsLeft />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="h-8 w-8 p-0"
-                      onClick={() => table.previousPage()}
-                      disabled={!table.getCanPreviousPage()}
-                    >
-                      <span className="sr-only">Go to previous page</span>
-                      <ChevronLeft />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="h-8 w-8 p-0"
-                      onClick={() => table.nextPage()}
-                      disabled={!table.getCanNextPage()}
-                    >
-                      <span className="sr-only">Go to next page</span>
-                      <ChevronRight />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="hidden h-8 w-8 p-0 lg:flex"
-                      onClick={() =>
-                        table.setPageIndex(table.getPageCount() - 1)
-                      }
-                      disabled={!table.getCanNextPage()}
-                    >
-                      <span className="sr-only">Go to last page</span>
-                      <ChevronsRight />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <DataTable
+              data={listComplaint?.items}
+              columns={columns}
+              searchPlaceholder="Cari pengaduan..."
+              searchColumn="title"
+            />
           </CardContent>
         </Card>
       </div>
