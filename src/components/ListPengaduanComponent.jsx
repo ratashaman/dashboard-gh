@@ -49,13 +49,14 @@ import LoadingScreen from "@/components/shared/loadingScreen";
 import { cl } from "@/lib/logger";
 import { validateEmail, validatePhone } from "@/lib/utils";
 
-export default function ListPenggunaComponent({
-  listUser,
-  listRole,
+export default function ListPengaduanComponent({
+  listComplaint,
+  listDepartment,
+  listType,
   isLoading,
-  addUser,
-  editUser,
-  delUser,
+  editComplaint,
+  editStatus,
+  delComplaint,
 }) {
   const [openDialog, setOpenDialog] = useState(false);
   const [openAlert, setOpenAlert] = useState(false);
@@ -65,29 +66,31 @@ export default function ListPenggunaComponent({
 
   const columns = [
     {
-      accessorKey: "fullName",
-      header: "Nama Lengkap",
+      accessorKey: "title",
+      header: "Judul",
       cell: ({ row }) => (
-        <div className="capitalize">{row.getValue("fullName")}</div>
+        <div className="capitalize">{row.getValue("title")}</div>
       ),
     },
     {
-      accessorKey: "email",
-      header: "Email",
+      accessorKey: "complaintType",
+      header: "Jenis",
       cell: ({ row }) => (
-        <div className="lowercase">{row.getValue("email")}</div>
+        <div className="capitalize">{row?.original?.complaintType?.name}</div>
       ),
     },
     {
-      accessorKey: "roles",
-      header: "Role",
+      accessorKey: "createdAt",
+      header: "Tanggal",
       cell: ({ row }) => (
-        <div className="capitalize">
-          {row
-            .getValue("roles")
-            .map((x) => x.name)
-            .join(", ")}
-        </div>
+        <div className="capitalize">{row.getValue("createdAt")}</div>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue("status")}</div>
       ),
     },
     {
@@ -113,7 +116,19 @@ export default function ListPenggunaComponent({
                   setOpenDialog(true);
                 }}
               >
-                Ubah Pengguna
+                Ubah Pengaduan
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  const roles = detail.roles.map((item) => {
+                    return { value: item.id, label: item.name };
+                  });
+                  setRoleIds(roles);
+                  setDetailUser(detail);
+                  setOpenDialog(true);
+                }}
+              >
+                Ubah Status
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
@@ -121,7 +136,7 @@ export default function ListPenggunaComponent({
                   setOpenAlert(true);
                 }}
               >
-                Hapus Pengguna
+                Hapus Pengaduan
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -241,7 +256,7 @@ export default function ListPenggunaComponent({
   };
 
   const table = useReactTable({
-    data: listUser?.items || [],
+    data: listComplaint?.items || [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -262,8 +277,8 @@ export default function ListPenggunaComponent({
           }
           setOpenAlert(val);
         }}
-        title="Apakah Anda yakin akan menghapus akun ini?"
-        description="Periksa kembali, karena hal ini akan menghapus data pengguna yang dipilih secara permanen."
+        title="Apakah Anda yakin akan menghapus pengaduan ini?"
+        description="Periksa kembali, karena hal ini akan menghapus data pengaduan yang dipilih secara permanen."
         onAction={handleDelUser}
       />
       <ModalForm
@@ -336,7 +351,7 @@ export default function ListPenggunaComponent({
               onChange={(v) => {
                 setRoleIds(v);
               }}
-              options={listRole}
+              options={[]}
             />
           </div>
         </div>
@@ -371,7 +386,7 @@ export default function ListPenggunaComponent({
         )}
       </ModalForm>
       <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">List Pengguna</h2>
+        <h2 className="text-3xl font-bold tracking-tight">List Pengaduan</h2>
       </div>
       <div className="grid gap-4 grid-cols-1">
         <Card>
@@ -379,22 +394,13 @@ export default function ListPenggunaComponent({
             <div className="w-full">
               <div className="flex items-center py-4">
                 <Input
-                  placeholder="Cari pengguna..."
-                  value={table.getColumn("fullName")?.getFilterValue() ?? ""}
+                  placeholder="Cari pengaduan..."
+                  value={table.getColumn("title")?.getFilterValue() ?? ""}
                   onChange={(event) =>
-                    table
-                      .getColumn("fullName")
-                      ?.setFilterValue(event.target.value)
+                    table.getColumn("title")?.setFilterValue(event.target.value)
                   }
                   className="max-w-sm"
                 />
-                <Button
-                  variant="secondary"
-                  className="ml-auto"
-                  onClick={() => setOpenDialog(true)}
-                >
-                  Tambah Pengguna
-                </Button>
               </div>
               <div className="rounded-md border">
                 <Table>

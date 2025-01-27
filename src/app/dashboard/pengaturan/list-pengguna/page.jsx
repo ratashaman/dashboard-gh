@@ -51,8 +51,6 @@ export default function ListPenggunaPage() {
         payload
       );
       await getUser();
-      console.log(data);
-
       return data;
     } catch (error) {
       cl(error);

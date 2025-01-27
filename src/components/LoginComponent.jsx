@@ -35,6 +35,7 @@ export default function LoginComponent({
                   id="email"
                   name="email"
                   type="email"
+                  autoComplete="email"
                   required
                 />
               </div>
@@ -52,6 +53,7 @@ export default function LoginComponent({
                   onChange={(e) => setErrMessage("")}
                   id="password"
                   name="password"
+                  autoComplete="password"
                   required
                 />
               </div>

@@ -32,9 +32,8 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
-import LoadingScreen from "@/components/shared/loadingScreen";
 
-// This is sample data.
+// Side menu.
 const data = {
   navMain: [
     {
@@ -67,12 +66,8 @@ const data = {
       icon: Bot,
       items: [
         {
-          title: "Infrastruktur",
-          url: "#",
-        },
-        {
-          title: "Administrasi",
-          url: "#",
+          title: "List Pengaduan",
+          url: "/dashboard/pengaduan/list-pengaduan",
         },
       ],
     },
@@ -82,16 +77,16 @@ const data = {
       icon: BookOpen,
       items: [
         {
-          title: "Tag",
-          url: "#",
+          title: "Lamaran",
+          url: "/dashboard/loker/lamaran",
+        },
+        {
+          title: "Lowongan",
+          url: "/dashboard/loker/lowongan",
         },
         {
           title: "Perekrut Kerja",
-          url: "#",
-        },
-        {
-          title: "Pencari Kerja",
-          url: "#",
+          url: "/dashboard/loker/perekrut",
         },
       ],
     },
@@ -105,8 +100,8 @@ const data = {
           url: "/dashboard/berita/kategori",
         },
         {
-          title: "List Berita",
-          url: "/dashboard/berita/list-berita",
+          title: "Konten",
+          url: "/dashboard/berita/konten",
         },
       ],
     },
@@ -128,7 +123,7 @@ export default function LayoutComponent({ children, ...props }) {
   const router = useRouter();
   const pathname = usePathname();
   const pathsplit = pathname.split("/");
-  const { users, isLoading, fetchUsers } = useUserStore();
+  const { users, fetchUsers } = useUserStore();
 
   React.useEffect(() => {
     const checkToken = async () => {
@@ -141,8 +136,6 @@ export default function LayoutComponent({ children, ...props }) {
 
     checkToken();
   }, [fetchUsers]);
-
-  // if (isLoading) return <LoadingScreen />;
 
   return (
     <SidebarProvider>
@@ -191,6 +184,7 @@ export default function LayoutComponent({ children, ...props }) {
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           <div className="flex-1 space-y-4 p-8 pt-6">{children}</div>
+          {/* load chatbot widget */}
           <Script
             strategy="afterInteractive"
             dangerouslySetInnerHTML={{
