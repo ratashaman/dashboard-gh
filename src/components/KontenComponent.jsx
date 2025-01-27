@@ -135,7 +135,7 @@ export const columns = [
   },
 ];
 
-export default function ListBeritaComponent() {
+export default function KontenComponent() {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
   const [columnVisibility, setColumnVisibility] = React.useState({});
