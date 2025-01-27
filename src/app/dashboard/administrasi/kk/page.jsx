@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import ListPengajuanKk from "@/components/ListPengajuanKk";
+import ListPengajuanKtp from "@/components/ListPengajuanKtp";
 
 export default function RingkasanPage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -53,7 +53,7 @@ export default function RingkasanPage() {
   }, []);
 
   return (
-    <ListPengajuanKk
+    <ListPengajuanKtp
       listPengajuanKk={listPengajuanKk}
       isLoading={isLoading}
       addPengajuanKk={addPengajuanKk}
@@ -62,4 +62,3 @@ export default function RingkasanPage() {
     />
   );
 }
-
