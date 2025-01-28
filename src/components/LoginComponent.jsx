@@ -36,6 +36,7 @@ export default function LoginComponent({
                   name="email"
                   type="email"
                   autoComplete="email"
+                  placeholder="Email"
                   required
                 />
               </div>
@@ -54,6 +55,7 @@ export default function LoginComponent({
                   id="password"
                   name="password"
                   autoComplete="password"
+                  placeholder="Password"
                   required
                 />
               </div>

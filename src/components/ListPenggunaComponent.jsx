@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MoreHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/shared/password-input";
+import { PhoneInput } from "@/components/shared/phone-input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import {
@@ -106,12 +107,21 @@ export default function ListPenggunaComponent({
     e.preventDefault();
     try {
       const formData = new FormData(e.target);
-      const { fullName, phone, email, password, passwordConf } =
-        Object.fromEntries(formData);
+      const {
+        fullName,
+        phone: rawPhone,
+        email,
+        password,
+        passwordConf,
+      } = Object.fromEntries(formData);
+      const phone = rawPhone.replace(/ /g, "");
 
       if (fullName === "") {
         return setErrMessage("Nama lengkap pengguna tidak boleh kosong");
       }
+
+      if (password.length < 6)
+        return setErrMessage("Password minimal 6 karakter");
 
       if (password !== passwordConf)
         return setErrMessage("Password dan konfirmasi password tidak sama");
@@ -261,8 +271,9 @@ export default function ListPenggunaComponent({
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
           <Label htmlFor="phone">No. Telepon</Label>
-          <Input
-            defaultValue={detailUser?.phone}
+          <PhoneInput
+            defaultCountry="ID"
+            value={detailUser?.phone}
             onChange={() => setErrMessage("")}
             type="tel"
             id="phone"

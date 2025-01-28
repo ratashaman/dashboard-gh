@@ -18,7 +18,7 @@ import DataTable from "@/components/shared/data-table";
 import SelectSearch from "react-tailwindcss-select";
 import LoadingScreen from "@/components/shared/loadingScreen";
 import { cl } from "@/lib/logger";
-import { validateEmail, validatePhone, formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 
 export default function ListPengaduanComponent({
   listComplaint,
