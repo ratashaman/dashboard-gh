@@ -41,29 +41,31 @@ export default function RingkasanComponent() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Job Portal</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Lowongan Kerja
+            </CardTitle>
             <BookOpen className="text-secondary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-secondary">+12,234</div>
-            <p className="text-xs text-muted-foreground">Seeker</p>
+            <p className="text-xs text-muted-foreground">Lamaran</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">User</CardTitle>
+            <CardTitle className="text-sm font-medium">Pengguna</CardTitle>
             <UserCheck className="text-secondary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-secondary">209.455</div>
-            <p className="text-xs text-muted-foreground">Pengguna</p>
+            <p className="text-xs text-muted-foreground">Orang</p>
           </CardContent>
         </Card>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4">
           <CardHeader>
-            <CardTitle>Overview</CardTitle>
+            <CardTitle>Ikhtisar</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
             <Overview />
@@ -71,8 +73,10 @@ export default function RingkasanComponent() {
         </Card>
         <Card className="col-span-3">
           <CardHeader>
-            <CardTitle>User Terbaru</CardTitle>
-            <CardDescription>Total 265 user baru bulan ini.</CardDescription>
+            <CardTitle>Pengguna Terbaru</CardTitle>
+            <CardDescription>
+              Total 265 pengguna baru bulan ini.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <RecentSales />

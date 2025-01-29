@@ -48,7 +48,9 @@ export default function KontenComponent({
       accessorKey: "status",
       header: "Status",
       cell: ({ row }) => (
-        <div className="">{row.getValue("status") ? "Published" : "Draft"}</div>
+        <div className="">
+          {row.getValue("status") ? "ditampilkan" : "disimpan"}
+        </div>
       ),
     },
     {
@@ -227,7 +229,7 @@ export default function KontenComponent({
               className="bg-white mr-4"
             />
             <Label htmlFor="category">
-              {statusChecked ? "Published" : "Draft"}
+              {statusChecked ? "Ditampilkan" : "Disimpan"}
             </Label>
           </div>
         </div>
