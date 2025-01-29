@@ -6,6 +6,7 @@ import Script from "next/script";
 import { useUserStore } from "@/store";
 import {
   BookOpen,
+  Flag,
   Bot,
   Settings2,
   SquareTerminal,
@@ -55,7 +56,7 @@ const data = {
     {
       title: "Pengaduan",
       url: "#",
-      icon: Bot,
+      icon: Flag,
       items: [
         {
           title: "List Pengaduan",
@@ -107,6 +108,11 @@ const data = {
           url: "/dashboard/pengaturan/list-pengguna",
         },
       ],
+    },
+    {
+      title: "Chat Bot",
+      url: "/dashboard/chat-bot",
+      icon: Bot,
     },
   ],
 };
