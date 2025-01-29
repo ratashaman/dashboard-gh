@@ -47,16 +47,8 @@ const data = {
       icon: SquareTerminal,
       items: [
         {
-          title: "KTP",
-          url: "/dashboard/administrasi/ktp",
-        },
-        {
-          title: "KK",
-          url: "#",
-        },
-        {
-          title: "Akta",
-          url: "#",
+          title: "List Pengajuan",
+          url: "/dashboard/administrasi/list-pengajuan",
         },
       ],
     },

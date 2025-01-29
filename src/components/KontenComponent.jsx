@@ -1,288 +1,256 @@
 "use client";
-
-import * as React from "react";
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
-
+import { MoreHorizontal } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import DeleteAlert from "@/components/shared/delete-alert";
+import ModalForm from "@/components/shared/modal-form";
+import DataTable from "@/components/shared/data-table";
+import LoadingScreen from "@/components/shared/loadingScreen";
+import { cl } from "@/lib/logger";
 
-const data = [
-  {
-    id: "m5gr84i9",
-    category: "Pajak",
-    title: "Pusat Kota Garut yang Makin Cantik Saja",
-  },
-  {
-    id: "3u1reuv4",
-    category: "Wisata",
-    title:
-      "Tempat Ngopi di Garut dengan Pemandangan City Light dan Gunung Cikuray",
-  },
-  {
-    id: "derv1ws0",
-    category: "Kuliner",
-    title: "Menikmati Lezatnya Bakso Laksana yang Legendaris di Garut",
-  },
-  {
-    id: "5kma53ae",
-    category: "Kriminal",
-    title: "Ega Tewas Tersetrum Saat Amankan Benang Layangan Berkawat di Garut",
-  },
-  {
-    id: "bhqecj4p",
-    category: "Budaya",
-    title: "Stadion Legendaris di Garut yang Kini Berumput Sintetis",
-  },
-];
+export default function KontenComponent({
+  listKonten,
+  isLoading,
+  addKonten,
+  editKonten,
+  delKonten,
+}) {
+  const [openDialog, setOpenDialog] = useState(false);
+  const [openAlert, setOpenAlert] = useState(false);
+  const [errMessage, setErrMessage] = useState("");
+  const [statusChecked, setStatusChecked] = useState(false);
+  const [detailKonten, setDetailKonten] = useState({});
 
-export const columns = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "title",
-    header: "Judul",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("title")}</div>
-    ),
-  },
-  {
-    accessorKey: "category",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Category
-          <ArrowUpDown />
-        </Button>
-      );
+  const columns = [
+    {
+      accessorKey: "title",
+      header: "Judul",
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue("title")}</div>
+      ),
     },
-    cell: ({ row }) => (
-      <div className="lowercase">{row.getValue("category")}</div>
-    ),
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-      const payment = row.original;
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Edit Post</DropdownMenuItem>
-            <DropdownMenuItem>Delete Post</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+    {
+      accessorKey: "category",
+      header: "Kategori",
+      cell: ({ row }) => <div className="">{row.getValue("category")}</div>,
     },
-  },
-];
-
-export default function KontenComponent() {
-  const [sorting, setSorting] = React.useState([]);
-  const [columnFilters, setColumnFilters] = React.useState([]);
-  const [columnVisibility, setColumnVisibility] = React.useState({});
-  const [rowSelection, setRowSelection] = React.useState({});
-
-  const table = useReactTable({
-    data,
-    columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <div className="">{row.getValue("status") ? "Published" : "Draft"}</div>
+      ),
     },
-  });
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        const detail = row.original;
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Buka menu</span>
+                <MoreHorizontal />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => {
+                  setDetailKonten(detail);
+                  setStatusChecked(detail.status);
+                  setOpenDialog(true);
+                }}
+              >
+                Ubah Konten
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  setDetailKonten(detail);
+                  setOpenAlert(true);
+                }}
+              >
+                Hapus Konten
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
+  ];
+
+  const handleAddKonten = async (e) => {
+    e.preventDefault();
+    try {
+      const formData = new FormData(e.target);
+      const { title, category } = Object.fromEntries(formData);
+
+      if (title === null) {
+        return setErrMessage("Judul konten tidak boleh kosong");
+      }
+
+      if (category === null) {
+        return setErrMessage("Kategori konten tidak boleh kosong");
+      }
+
+      const data = await addKonten(detailKonten?.id, {
+        title,
+        category,
+        status: statusChecked,
+      });
+      cl(data);
+      if (data?.status === "OK") handleCloseDialog();
+    } catch (error) {
+      cl("error");
+      cl(error);
+      setErrMessage(error?.message);
+    }
+  };
+
+  const handleEditKonten = async (e) => {
+    e.preventDefault();
+    try {
+      const formData = new FormData(e.target);
+      const { title, category } = Object.fromEntries(formData);
+
+      if (title === null) {
+        return setErrMessage("Judul konten tidak boleh kosong");
+      }
+
+      if (category === null) {
+        return setErrMessage("Kategori konten tidak boleh kosong");
+      }
+
+      const data = await editKonten(detailKonten?.id, {
+        title,
+        category,
+        status: statusChecked,
+      });
+      cl(data);
+      if (data?.status === "OK") handleCloseDialog();
+    } catch (error) {
+      cl("error");
+      cl(error);
+      setErrMessage(error?.message);
+    }
+  };
+
+  const handleDelKonten = async () => {
+    try {
+      const data = await delKonten(detailKonten?.id);
+      cl(data);
+      setDetailKonten({});
+    } catch (error) {
+      cl(error?.message);
+    }
+  };
+
+  const handleCloseDialog = () => {
+    setErrMessage("");
+    setDetailKonten({});
+    setStatusChecked(false);
+    setOpenDialog(false);
+  };
+
+  if (isLoading) return <LoadingScreen />;
 
   return (
     <>
+      <DeleteAlert
+        open={openAlert}
+        onOpenChange={(val) => {
+          if (!val) {
+            setDetailKonten({});
+          }
+          setOpenAlert(val);
+        }}
+        title="Apakah Anda yakin akan menghapus konten ini?"
+        description="Periksa kembali, karena hal ini akan menghapus data konten yang dipilih secara permanen."
+        onAction={handleDelKonten}
+      />
+      <ModalForm
+        open={openDialog}
+        onOpenChange={(val) => {
+          if (!val) {
+            handleCloseDialog();
+          }
+          setOpenDialog(val);
+        }}
+        onSubmit={detailKonten?.name ? handleEditKonten : handleAddKonten}
+        title={detailKonten?.name ? "Ubah Konten" : "Tambah Konten"}
+        description={
+          detailKonten?.name
+            ? "Perbaiki data konten"
+            : "Masukkan data konten baru" +
+              ". Klik simpan ketika sudah selesai."
+        }
+      >
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="title">Judul</Label>
+          <Input
+            defaultValue={detailKonten?.title}
+            onChange={() => setErrMessage("")}
+            type="text"
+            id="title"
+            name="title"
+            className="col-span-3 bg-white"
+          />
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="category">Kategori</Label>
+          <Input
+            defaultValue={detailKonten?.category}
+            onChange={() => setErrMessage("")}
+            type="text"
+            id="category"
+            name="category"
+            className="col-span-3 bg-white"
+          />
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="category">Kategori</Label>
+          <div className="col-span-3 flex items-center">
+            <Switch
+              checked={statusChecked}
+              onCheckedChange={setStatusChecked}
+              id="status"
+              name="status"
+              className="bg-white mr-4"
+            />
+            <Label htmlFor="category">
+              {statusChecked ? "Published" : "Draft"}
+            </Label>
+          </div>
+        </div>
+        {errMessage !== "" && (
+          <div className="p-2 rounded-md text-center border border-destructive-foreground text-destructive">
+            {errMessage}
+          </div>
+        )}
+      </ModalForm>
       <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">List Berita</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Konten Berita</h2>
       </div>
       <div className="grid gap-4 grid-cols-1">
         <Card>
           <CardContent>
-            <div className="w-full">
-              <div className="flex items-center py-4">
-                <Input
-                  placeholder="Filter post..."
-                  value={table.getColumn("title")?.getFilterValue() ?? ""}
-                  onChange={(event) =>
-                    table.getColumn("title")?.setFilterValue(event.target.value)
-                  }
-                  className="max-w-sm"
-                />
-                <Button variant="secondary" className="ml-auto">
-                  Tambah Berita
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="ml-4">
-                      Columns <ChevronDown />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {table
-                      .getAllColumns()
-                      .filter((column) => column.getCanHide())
-                      .map((column) => {
-                        return (
-                          <DropdownMenuCheckboxItem
-                            key={column.id}
-                            className="capitalize"
-                            checked={column.getIsVisible()}
-                            onCheckedChange={(value) =>
-                              column.toggleVisibility(!!value)
-                            }
-                          >
-                            {column.id}
-                          </DropdownMenuCheckboxItem>
-                        );
-                      })}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    {table.getHeaderGroups().map((headerGroup) => (
-                      <TableRow key={headerGroup.id}>
-                        {headerGroup.headers.map((header) => {
-                          return (
-                            <TableHead key={header.id}>
-                              {header.isPlaceholder
-                                ? null
-                                : flexRender(
-                                    header.column.columnDef.header,
-                                    header.getContext()
-                                  )}
-                            </TableHead>
-                          );
-                        })}
-                      </TableRow>
-                    ))}
-                  </TableHeader>
-                  <TableBody>
-                    {table.getRowModel().rows?.length ? (
-                      table.getRowModel().rows.map((row) => (
-                        <TableRow
-                          key={row.id}
-                          data-state={row.getIsSelected() && "selected"}
-                        >
-                          {row.getVisibleCells().map((cell) => (
-                            <TableCell key={cell.id}>
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext()
-                              )}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell
-                          colSpan={columns.length}
-                          className="h-24 text-center"
-                        >
-                          No results.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-              <div className="flex items-center justify-end space-x-2 py-4">
-                <div className="flex-1 text-sm text-muted-foreground">
-                  {table.getFilteredSelectedRowModel().rows.length} of{" "}
-                  {table.getFilteredRowModel().rows.length} row(s) selected.
-                </div>
-                <div className="space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => table.previousPage()}
-                    disabled={!table.getCanPreviousPage()}
-                  >
-                    Previous
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => table.nextPage()}
-                    disabled={!table.getCanNextPage()}
-                  >
-                    Next
-                  </Button>
-                </div>
-              </div>
-            </div>
+            <DataTable
+              data={listKonten?.items}
+              columns={columns}
+              searchColumn="title"
+              searchPlaceholder="Cari konten..."
+              buttonLabel="Tambah Konten"
+              buttonOnClick={() => setOpenDialog(true)}
+            />
           </CardContent>
         </Card>
       </div>

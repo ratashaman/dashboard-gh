@@ -5,6 +5,7 @@ import { MoreHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,31 +17,50 @@ import ModalForm from "@/components/shared/modal-form";
 import DataTable from "@/components/shared/data-table";
 import LoadingScreen from "@/components/shared/loadingScreen";
 import { cl } from "@/lib/logger";
+import { formatDate } from "@/lib/utils";
 
-export default function KategoriComponent({
-  listKategori,
+export default function LowonganComponent({
+  listLowongan,
   isLoading,
-  addKategori,
-  editKategori,
-  delKategori,
+  editLowongan,
+  delLowongan,
 }) {
   const [openDialog, setOpenDialog] = useState(false);
   const [openAlert, setOpenAlert] = useState(false);
   const [errMessage, setErrMessage] = useState("");
-  const [detailKategori, setDetailKategori] = useState({});
+  const [statusChecked, setStatusChecked] = useState(false);
+  const [detailLowongan, setDetailLowongan] = useState({});
 
   const columns = [
     {
-      accessorKey: "name",
-      header: "Nama",
+      accessorKey: "position",
+      header: "Posisi",
       cell: ({ row }) => (
-        <div className="capitalize">{row.getValue("name")}</div>
+        <div className="capitalize">{row.getValue("position")}</div>
       ),
     },
     {
-      accessorKey: "slug",
-      header: "Slug",
-      cell: ({ row }) => <div className="">{row.getValue("slug")}</div>,
+      accessorKey: "recruiter",
+      header: "Perekrut",
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue("recruiter")}</div>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <div className="capitalize">
+          {row.getValue("status") ? "Aktif" : "Non-Aktif"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Tanggal",
+      cell: ({ row }) => (
+        <div className="">{formatDate(row.getValue("createdAt"))}</div>
+      ),
     },
     {
       id: "actions",
@@ -57,19 +77,20 @@ export default function KategoriComponent({
             <DropdownMenuContent align="end">
               <DropdownMenuItem
                 onClick={() => {
-                  setDetailKategori(detail);
+                  setDetailLowongan(detail);
+                  setStatusChecked(detail.status);
                   setOpenDialog(true);
                 }}
               >
-                Ubah Kategori
+                Ubah Lowongan
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
-                  setDetailKategori(detail);
+                  setDetailLowongan(detail);
                   setOpenAlert(true);
                 }}
               >
-                Hapus Kategori
+                Hapus Lowongan
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -78,23 +99,24 @@ export default function KategoriComponent({
     },
   ];
 
-  const handleAddKategori = async (e) => {
+  const handleEditLowongan = async (e) => {
     e.preventDefault();
     try {
       const formData = new FormData(e.target);
-      const { name, slug } = Object.fromEntries(formData);
+      const { position, recruiter } = Object.fromEntries(formData);
 
-      if (name === null) {
-        return setErrMessage("Nama kategori tidak boleh kosong");
+      if (position === null) {
+        return setErrMessage("Posisi lowongan tidak boleh kosong");
       }
 
-      if (slug === null) {
-        return setErrMessage("Slug kategori tidak boleh kosong");
+      if (recruiter === null) {
+        return setErrMessage("Perekrut tidak boleh kosong");
       }
 
-      const data = await addKategori(detailKategori?.id, {
-        name,
-        slug,
+      const data = await editLowongan(detailLowongan?.id, {
+        position,
+        recruiter,
+        status: statusChecked,
       });
       cl(data);
       if (data?.status === "OK") handleCloseDialog();
@@ -105,38 +127,11 @@ export default function KategoriComponent({
     }
   };
 
-  const handleEditKategori = async (e) => {
-    e.preventDefault();
+  const handleDelLowongan = async () => {
     try {
-      const formData = new FormData(e.target);
-      const { name, slug } = Object.fromEntries(formData);
-
-      if (name === null) {
-        return setErrMessage("Nama kategori tidak boleh kosong");
-      }
-
-      if (slug === null) {
-        return setErrMessage("Slug kategori tidak boleh kosong");
-      }
-
-      const data = await editKategori(detailKategori?.id, {
-        name,
-        slug,
-      });
+      const data = await delLowongan(detailLowongan?.id);
       cl(data);
-      if (data?.status === "OK") handleCloseDialog();
-    } catch (error) {
-      cl("error");
-      cl(error);
-      setErrMessage(error?.message);
-    }
-  };
-
-  const handleDelKategori = async () => {
-    try {
-      const data = await delKategori(detailKategori?.id);
-      cl(data);
-      setDetailKategori({});
+      setDetailLowongan({});
     } catch (error) {
       cl(error?.message);
     }
@@ -144,7 +139,8 @@ export default function KategoriComponent({
 
   const handleCloseDialog = () => {
     setErrMessage("");
-    setDetailKategori({});
+    setDetailLowongan({});
+    setStatusChecked(false);
     setOpenDialog(false);
   };
 
@@ -156,13 +152,13 @@ export default function KategoriComponent({
         open={openAlert}
         onOpenChange={(val) => {
           if (!val) {
-            setDetailKategori({});
+            setDetailLowongan({});
           }
           setOpenAlert(val);
         }}
-        title="Apakah Anda yakin akan menghapus kategori ini?"
-        description="Periksa kembali, karena hal ini akan menghapus data kategori yang dipilih secara permanen."
-        onAction={handleDelKategori}
+        title="Apakah Anda yakin akan menghapus lowongan ini?"
+        description="Periksa kembali, karena hal ini akan menghapus data lowongan yang dipilih secara permanen."
+        onAction={handleDelLowongan}
       />
       <ModalForm
         open={openDialog}
@@ -172,36 +168,46 @@ export default function KategoriComponent({
           }
           setOpenDialog(val);
         }}
-        onSubmit={detailKategori?.name ? handleEditKategori : handleAddKategori}
-        title={detailKategori?.name ? "Ubah Kategori" : "Tambah Kategori"}
-        description={
-          detailKategori?.name
-            ? "Perbaiki data kategori"
-            : "Masukkan data kategori baru" +
-              ". Klik simpan ketika sudah selesai."
-        }
+        onSubmit={handleEditLowongan}
+        title="Ubah Lowongan"
+        description="Perbaiki data lowongan. Klik simpan ketika sudah selesai."
       >
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="name">Nama</Label>
+          <Label htmlFor="position">Posisi</Label>
           <Input
-            defaultValue={detailKategori?.name}
+            defaultValue={detailLowongan?.position}
             onChange={() => setErrMessage("")}
             type="text"
-            id="name"
-            name="name"
+            id="position"
+            name="position"
             className="col-span-3 bg-white"
           />
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="slug">Slug</Label>
+          <Label htmlFor="recruiter">Perekrut</Label>
           <Input
-            defaultValue={detailKategori?.slug}
+            defaultValue={detailLowongan?.recruiter}
             onChange={() => setErrMessage("")}
             type="text"
-            id="slug"
-            name="slug"
+            id="recruiter"
+            name="recruiter"
             className="col-span-3 bg-white"
           />
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="status">Status</Label>
+          <div className="col-span-3 flex items-center">
+            <Switch
+              checked={statusChecked}
+              onCheckedChange={setStatusChecked}
+              id="status"
+              name="status"
+              className="bg-white mr-4"
+            />
+            <Label htmlFor="status">
+              {statusChecked ? "Aktif" : "Non-Aktif"}
+            </Label>
+          </div>
         </div>
         {errMessage !== "" && (
           <div className="p-2 rounded-md text-center border border-destructive-foreground text-destructive">
@@ -210,18 +216,16 @@ export default function KategoriComponent({
         )}
       </ModalForm>
       <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Kategori Berita</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Lowongan</h2>
       </div>
       <div className="grid gap-4 grid-cols-1">
         <Card>
           <CardContent>
             <DataTable
-              data={listKategori?.items}
+              data={listLowongan?.items}
               columns={columns}
-              searchColumn="name"
-              searchPlaceholder="Cari kategori..."
-              buttonLabel="Tambah Kategori"
-              buttonOnClick={() => setOpenDialog(true)}
+              searchColumn="position"
+              searchPlaceholder="Cari lowongan..."
             />
           </CardContent>
         </Card>

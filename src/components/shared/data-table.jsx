@@ -35,8 +35,8 @@ import {
 export default function DataTable({
   data = [],
   columns,
-  searchPlaceholder,
-  searchColumn,
+  searchPlaceholder = "",
+  searchColumn = "",
   buttonLabel = "",
   buttonOnClick,
 }) {
@@ -53,14 +53,16 @@ export default function DataTable({
   return (
     <div className="w-full">
       <div className="flex items-center py-4">
-        <Input
-          placeholder={searchPlaceholder}
-          value={table.getColumn(searchColumn)?.getFilterValue() ?? ""}
-          onChange={(event) =>
-            table.getColumn(searchColumn)?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
+        {searchColumn !== "" && (
+          <Input
+            placeholder={searchPlaceholder}
+            value={table.getColumn(searchColumn)?.getFilterValue() ?? ""}
+            onChange={(event) =>
+              table.getColumn(searchColumn)?.setFilterValue(event.target.value)
+            }
+            className="max-w-sm"
+          />
+        )}
         {buttonLabel !== "" && (
           <Button
             variant="secondary"

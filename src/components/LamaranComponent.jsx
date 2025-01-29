@@ -16,18 +16,18 @@ import ModalForm from "@/components/shared/modal-form";
 import DataTable from "@/components/shared/data-table";
 import LoadingScreen from "@/components/shared/loadingScreen";
 import { cl } from "@/lib/logger";
+import { formatDate } from "@/lib/utils";
 
-export default function KategoriComponent({
-  listKategori,
+export default function LamaranComponent({
+  listLamaran,
   isLoading,
-  addKategori,
-  editKategori,
-  delKategori,
+  editLamaran,
+  delLamaran,
 }) {
   const [openDialog, setOpenDialog] = useState(false);
   const [openAlert, setOpenAlert] = useState(false);
   const [errMessage, setErrMessage] = useState("");
-  const [detailKategori, setDetailKategori] = useState({});
+  const [detailLamaran, setDetailLamaran] = useState({});
 
   const columns = [
     {
@@ -38,9 +38,25 @@ export default function KategoriComponent({
       ),
     },
     {
-      accessorKey: "slug",
-      header: "Slug",
-      cell: ({ row }) => <div className="">{row.getValue("slug")}</div>,
+      accessorKey: "position",
+      header: "Posisi",
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue("position")}</div>
+      ),
+    },
+    {
+      accessorKey: "recruiter",
+      header: "Perekrut",
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue("recruiter")}</div>
+      ),
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Tanggal",
+      cell: ({ row }) => (
+        <div className="">{formatDate(row.getValue("createdAt"))}</div>
+      ),
     },
     {
       id: "actions",
@@ -57,19 +73,19 @@ export default function KategoriComponent({
             <DropdownMenuContent align="end">
               <DropdownMenuItem
                 onClick={() => {
-                  setDetailKategori(detail);
+                  setDetailLamaran(detail);
                   setOpenDialog(true);
                 }}
               >
-                Ubah Kategori
+                Ubah Lamaran
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
-                  setDetailKategori(detail);
+                  setDetailLamaran(detail);
                   setOpenAlert(true);
                 }}
               >
-                Hapus Kategori
+                Hapus Lamaran
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -78,23 +94,23 @@ export default function KategoriComponent({
     },
   ];
 
-  const handleAddKategori = async (e) => {
+  const handleEditLamaran = async (e) => {
     e.preventDefault();
     try {
       const formData = new FormData(e.target);
-      const { name, slug } = Object.fromEntries(formData);
+      const { position, recruiter } = Object.fromEntries(formData);
 
-      if (name === null) {
-        return setErrMessage("Nama kategori tidak boleh kosong");
+      if (position === null) {
+        return setErrMessage("Posisi lamaran tidak boleh kosong");
       }
 
-      if (slug === null) {
-        return setErrMessage("Slug kategori tidak boleh kosong");
+      if (recruiter === null) {
+        return setErrMessage("Perekrut tidak boleh kosong");
       }
 
-      const data = await addKategori(detailKategori?.id, {
-        name,
-        slug,
+      const data = await editLamaran(detailLamaran?.id, {
+        position,
+        recruiter,
       });
       cl(data);
       if (data?.status === "OK") handleCloseDialog();
@@ -105,38 +121,11 @@ export default function KategoriComponent({
     }
   };
 
-  const handleEditKategori = async (e) => {
-    e.preventDefault();
+  const handleDelLamaran = async () => {
     try {
-      const formData = new FormData(e.target);
-      const { name, slug } = Object.fromEntries(formData);
-
-      if (name === null) {
-        return setErrMessage("Nama kategori tidak boleh kosong");
-      }
-
-      if (slug === null) {
-        return setErrMessage("Slug kategori tidak boleh kosong");
-      }
-
-      const data = await editKategori(detailKategori?.id, {
-        name,
-        slug,
-      });
+      const data = await delLamaran(detailLamaran?.id);
       cl(data);
-      if (data?.status === "OK") handleCloseDialog();
-    } catch (error) {
-      cl("error");
-      cl(error);
-      setErrMessage(error?.message);
-    }
-  };
-
-  const handleDelKategori = async () => {
-    try {
-      const data = await delKategori(detailKategori?.id);
-      cl(data);
-      setDetailKategori({});
+      setDetailLamaran({});
     } catch (error) {
       cl(error?.message);
     }
@@ -144,7 +133,7 @@ export default function KategoriComponent({
 
   const handleCloseDialog = () => {
     setErrMessage("");
-    setDetailKategori({});
+    setDetailLamaran({});
     setOpenDialog(false);
   };
 
@@ -156,13 +145,13 @@ export default function KategoriComponent({
         open={openAlert}
         onOpenChange={(val) => {
           if (!val) {
-            setDetailKategori({});
+            setDetailLamaran({});
           }
           setOpenAlert(val);
         }}
-        title="Apakah Anda yakin akan menghapus kategori ini?"
-        description="Periksa kembali, karena hal ini akan menghapus data kategori yang dipilih secara permanen."
-        onAction={handleDelKategori}
+        title="Apakah Anda yakin akan menghapus lamaran ini?"
+        description="Periksa kembali, karena hal ini akan menghapus data lamaran yang dipilih secara permanen."
+        onAction={handleDelLamaran}
       />
       <ModalForm
         open={openDialog}
@@ -172,34 +161,29 @@ export default function KategoriComponent({
           }
           setOpenDialog(val);
         }}
-        onSubmit={detailKategori?.name ? handleEditKategori : handleAddKategori}
-        title={detailKategori?.name ? "Ubah Kategori" : "Tambah Kategori"}
-        description={
-          detailKategori?.name
-            ? "Perbaiki data kategori"
-            : "Masukkan data kategori baru" +
-              ". Klik simpan ketika sudah selesai."
-        }
+        onSubmit={handleEditLamaran}
+        title="Ubah Lamaran"
+        description="Perbaiki data lamaran. Klik simpan ketika sudah selesai."
       >
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="name">Nama</Label>
+          <Label htmlFor="position">Posisi</Label>
           <Input
-            defaultValue={detailKategori?.name}
+            defaultValue={detailLamaran?.position}
             onChange={() => setErrMessage("")}
             type="text"
-            id="name"
-            name="name"
+            id="position"
+            name="position"
             className="col-span-3 bg-white"
           />
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="slug">Slug</Label>
+          <Label htmlFor="recruiter">Perekrut</Label>
           <Input
-            defaultValue={detailKategori?.slug}
+            defaultValue={detailLamaran?.recruiter}
             onChange={() => setErrMessage("")}
             type="text"
-            id="slug"
-            name="slug"
+            id="recruiter"
+            name="recruiter"
             className="col-span-3 bg-white"
           />
         </div>
@@ -210,18 +194,16 @@ export default function KategoriComponent({
         )}
       </ModalForm>
       <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Kategori Berita</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Lamaran Masuk</h2>
       </div>
       <div className="grid gap-4 grid-cols-1">
         <Card>
           <CardContent>
             <DataTable
-              data={listKategori?.items}
+              data={listLamaran?.items}
               columns={columns}
               searchColumn="name"
-              searchPlaceholder="Cari kategori..."
-              buttonLabel="Tambah Kategori"
-              buttonOnClick={() => setOpenDialog(true)}
+              searchPlaceholder="Cari lamaran..."
             />
           </CardContent>
         </Card>
