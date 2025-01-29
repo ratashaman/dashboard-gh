@@ -64,19 +64,6 @@ const CountrySelect = ({
   options: countryList,
   onChange,
 }) => {
-  const scrollAreaRef = React.useRef(null);
-
-  React.useEffect(() => {
-    // Get the scroll viewport from the ScrollArea component
-    const scrollArea = scrollAreaRef.current?.querySelector(
-      "[data-radix-scroll-area-viewport]"
-    );
-    console.log(scrollArea);
-
-    if (scrollArea) {
-      scrollArea.scrollTop = 0;
-    }
-  }, []);
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -102,7 +89,7 @@ const CountrySelect = ({
         <Command>
           <CommandInput placeholder="Cari negara..." />
           <CommandList>
-            <ScrollArea ref={scrollAreaRef} className="h-72">
+            <ScrollArea className="h-72">
               <CommandEmpty>Negara tidak ditemukan.</CommandEmpty>
               <CommandGroup>
                 {countryList.map(({ value, label }) =>

@@ -164,7 +164,8 @@ export default function ListPenggunaComponent({
     e.preventDefault();
     try {
       const formData = new FormData(e.target);
-      const { fullName, phone, email } = Object.fromEntries(formData);
+      const { fullName, phone: rawPhone, email } = Object.fromEntries(formData);
+      const phone = rawPhone.replace(/ /g, "");
 
       if (fullName === "") {
         return setErrMessage("Nama lengkap pengguna tidak boleh kosong");
