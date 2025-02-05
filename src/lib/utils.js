@@ -23,3 +23,8 @@ export function validatePhone(phone) {
 export function formatDate(date) {
   return dayjs(date).format("DD-MMM-YYYY HH:mm:ss");
 }
+
+export const pause = function (time) {
+  // handy pause function to await
+  return new Promise((resolve) => setTimeout(resolve, Number(time)));
+};

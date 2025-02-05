@@ -39,7 +39,9 @@ const actionIcons = [
   { icon: RefreshCcw, type: "Regenerate" },
 ];
 
-export default function ChatBotComponent() {
+export default function ChatBotComponent({ listChat, sendChat }) {
+  const chatMsg = useRef(null);
+
   return (
     <>
       <div className="flex items-center justify-between space-y-2">
@@ -52,11 +54,11 @@ export default function ChatBotComponent() {
               <div className="flex-1 w-full overflow-y-auto py-6">
                 <ChatMessageList>
                   {/* Messages */}
-                  {messages.map((message, index) => {
+                  {listChat.map((message, index) => {
                     const variant =
                       message.sender === "user" ? "sent" : "received";
                     return (
-                      <ChatBubble key={message.id} variant={variant}>
+                      <ChatBubble key={index} variant={variant}>
                         <ChatBubbleAvatar
                           fallback={variant === "sent" ? "GH" : "AI"}
                         />
@@ -89,13 +91,14 @@ export default function ChatBotComponent() {
 
               {/* Form and Footer fixed at the bottom */}
               <div className="w-full px-4 pb-4">
-                <form className="relative rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring p-1">
+                <div className="relative rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring p-1">
                   <ChatInput
+                    ref={chatMsg}
                     placeholder="Type your message here..."
                     className="min-h-12 resize-none rounded-lg bg-background border-0 p-3 shadow-none focus-visible:ring-0"
                   />
                   <div className="flex items-center p-3 pt-0">
-                    <Button variant="ghost" size="icon">
+                    {/* <Button variant="ghost" size="icon">
                       <Paperclip className="size-4" />
                       <span className="sr-only">Attach file</span>
                     </Button>
@@ -103,14 +106,21 @@ export default function ChatBotComponent() {
                     <Button variant="ghost" size="icon">
                       <Mic className="size-4" />
                       <span className="sr-only">Use Microphone</span>
-                    </Button>
+                    </Button> */}
 
-                    <Button size="sm" className="ml-auto gap-1.5">
+                    <Button
+                      onClick={() => {
+                        sendChat(chatMsg.current.value);
+                        chatMsg.current.value = "";
+                      }}
+                      size="sm"
+                      className="ml-auto gap-1.5"
+                    >
                       Send Message
                       <CornerDownLeft className="size-3.5" />
                     </Button>
                   </div>
-                </form>
+                </div>
               </div>
             </div>
           </CardContent>
