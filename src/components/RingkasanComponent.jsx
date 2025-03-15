@@ -11,8 +11,17 @@ import {
 } from "@/components/ui/card";
 import { Overview } from "@/components/ringkasan/overview";
 import { RecentSales } from "@/components/ringkasan/recent-sales";
+import LoadingScreen from "@/components/shared/loadingScreen";
 
-export default function RingkasanComponent() {
+export default function RingkasanComponent({
+  totalPengajuan,
+  totalComplaint,
+  isLoading,
+  totalLamaran,
+  totalUser,
+}) {
+  if (isLoading) return <LoadingScreen />;
+
   return (
     <>
       <div className="flex items-center justify-between space-y-2">
@@ -25,7 +34,9 @@ export default function RingkasanComponent() {
             <SquareTerminal className="text-secondary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-secondary">19.532</div>
+            <div className="text-2xl font-bold text-secondary">
+              {totalPengajuan}
+            </div>
             <p className="text-xs text-muted-foreground">Pengajuan</p>
           </CardContent>
         </Card>
@@ -35,7 +46,9 @@ export default function RingkasanComponent() {
             <Bot className="text-secondary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-secondary">2.350</div>
+            <div className="text-2xl font-bold text-secondary">
+              {totalComplaint}
+            </div>
             <p className="text-xs text-muted-foreground">Laporan</p>
           </CardContent>
         </Card>
@@ -47,7 +60,9 @@ export default function RingkasanComponent() {
             <BookOpen className="text-secondary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-secondary">+12,234</div>
+            <div className="text-2xl font-bold text-secondary">
+              {totalLamaran}
+            </div>
             <p className="text-xs text-muted-foreground">Lamaran</p>
           </CardContent>
         </Card>
@@ -57,12 +72,12 @@ export default function RingkasanComponent() {
             <UserCheck className="text-secondary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-secondary">209.455</div>
+            <div className="text-2xl font-bold text-secondary">{totalUser}</div>
             <p className="text-xs text-muted-foreground">Orang</p>
           </CardContent>
         </Card>
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+      {/* <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4">
           <CardHeader>
             <CardTitle>Ikhtisar</CardTitle>
@@ -82,7 +97,7 @@ export default function RingkasanComponent() {
             <RecentSales />
           </CardContent>
         </Card>
-      </div>
+      </div> */}
     </>
   );
 }
