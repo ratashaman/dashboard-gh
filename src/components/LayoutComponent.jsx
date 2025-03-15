@@ -48,8 +48,8 @@ const data = {
       icon: SquareTerminal,
       items: [
         {
-          title: "List Pengajuan",
-          url: "/dashboard/administrasi/list-pengajuan",
+          title: "List Pengajuan KTP",
+          url: "/dashboard/administrasi/list-pengajuan-ktp",
         },
       ],
     },
@@ -61,6 +61,14 @@ const data = {
         {
           title: "List Pengaduan",
           url: "/dashboard/pengaduan/list-pengaduan",
+        },
+        {
+          title: "Kategori Pengaduan",
+          url: "/dashboard/pengaduan/kategori-pengaduan",
+        },
+        {
+          title: "Departemen Pengaduan",
+          url: "/dashboard/pengaduan/departemen-pengaduan",
         },
       ],
     },
@@ -170,7 +178,7 @@ export default function LayoutComponent({ children, ...props }) {
                           <BreadcrumbSeparator className="hidden md:block" />
                           <BreadcrumbItem>
                             <BreadcrumbPage className="capitalize">
-                              {path.replace("-", " ")}
+                              {path.replaceAll("-", " ")}
                             </BreadcrumbPage>
                           </BreadcrumbItem>
                         </React.Fragment>

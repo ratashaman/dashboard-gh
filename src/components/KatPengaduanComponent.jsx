@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { MoreHorizontal } from "lucide-react";
@@ -18,44 +19,38 @@ import LoadingScreen from "@/components/shared/loadingScreen";
 import { cl } from "@/lib/logger";
 import { formatDate } from "@/lib/utils";
 
-export default function ListPengajuanComponent({
-  listPengajuan,
+export default function KatPengaduanComponent({
+  listCat,
   isLoading,
-  editPengajuan,
-  delPengajuan,
+  addCat,
+  editCat,
+  delCat,
 }) {
   const [openDialog, setOpenDialog] = useState(false);
   const [openAlert, setOpenAlert] = useState(false);
   const [errMessage, setErrMessage] = useState("");
-  const [detailPengajuan, setDetailPengajuan] = useState({});
+  const [detailCat, setDetailCat] = useState({});
 
   const columns = [
     {
-      accessorKey: "type",
-      header: "Jenis",
+      accessorKey: "name",
+      header: "Nama Kategori",
       cell: ({ row }) => (
-        <div className="capitalize">{row.getValue("type")}</div>
-      ),
-    },
-    {
-      accessorKey: "category",
-      header: "Kategori",
-      cell: ({ row }) => (
-        <div className="capitalize">{row.getValue("category")}</div>
+        <div className="capitalize">{row.getValue("name")}</div>
       ),
     },
     {
       accessorKey: "createdAt",
-      header: "Tanggal",
+      header: "Tanggal Pembuatan",
       cell: ({ row }) => (
-        <div className="">{formatDate(row.getValue("createdAt"))}</div>
+        <div className="lowercase">{formatDate(row.getValue("createdAt"))}</div>
       ),
     },
     {
-      accessorKey: "status",
-      header: "Status",
+      accessorKey: "updatedAt",
+      header: "Tanggal Perubahan",
       cell: ({ row }) => (
-        <div className="capitalize">{row.getValue("status")}</div>
+        <div className="lowercase">{formatDate(row.getValue("updatedAt"))}</div>
       ),
     },
     {
@@ -73,19 +68,19 @@ export default function ListPengajuanComponent({
             <DropdownMenuContent align="end">
               <DropdownMenuItem
                 onClick={() => {
-                  setDetailPengajuan(detail);
+                  setDetailCat(detail);
                   setOpenDialog(true);
                 }}
               >
-                Ubah Pengajuan
+                Ubah Kategori
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
-                  setDetailPengajuan(detail);
+                  setDetailCat(detail);
                   setOpenAlert(true);
                 }}
               >
-                Hapus Pengajuan
+                Hapus Kategori
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -94,28 +89,38 @@ export default function ListPengajuanComponent({
     },
   ];
 
-  const handleEditPengajuan = async (e) => {
+  const handleAddCat = async (e) => {
     e.preventDefault();
     try {
       const formData = new FormData(e.target);
-      const { type, category, status } = Object.fromEntries(formData);
+      const { name } = Object.fromEntries(formData);
 
-      if (type === null) {
-        return setErrMessage("Jenis pengajuan tidak boleh kosong");
+      if (name === "") {
+        return setErrMessage("Nama kategori tidak boleh kosong");
       }
 
-      if (category === null) {
-        return setErrMessage("Kategori tidak boleh kosong");
+      const data = await addCat({
+        name,
+      });
+      cl(data);
+      if (data?.status === "OK") handleCloseDialog();
+    } catch (error) {
+      setErrMessage(error?.message);
+    }
+  };
+
+  const handleEditCat = async (e) => {
+    e.preventDefault();
+    try {
+      const formData = new FormData(e.target);
+      const { name } = Object.fromEntries(formData);
+
+      if (name === "") {
+        return setErrMessage("Nama kategori tidak boleh kosong");
       }
 
-      if (status === null) {
-        return setErrMessage("Status pengajuan tidak boleh kosong");
-      }
-
-      const data = await editPengajuan(detailPengajuan?.id, {
-        type,
-        category,
-        status: status?.value,
+      const data = await editCat(detailCat?.id, {
+        name,
       });
       cl(data);
       if (data?.status === "OK") handleCloseDialog();
@@ -126,11 +131,11 @@ export default function ListPengajuanComponent({
     }
   };
 
-  const handleDelPengajuan = async () => {
+  const handleDelCat = async () => {
     try {
-      const data = await delPengajuan(detailPengajuan?.id);
+      const data = await delCat(detailCat?.id);
       cl(data);
-      setDetailPengajuan({});
+      setDetailCat({});
     } catch (error) {
       cl(error?.message);
     }
@@ -138,7 +143,7 @@ export default function ListPengajuanComponent({
 
   const handleCloseDialog = () => {
     setErrMessage("");
-    setDetailPengajuan({});
+    setDetailCat({});
     setOpenDialog(false);
   };
 
@@ -150,56 +155,41 @@ export default function ListPengajuanComponent({
         open={openAlert}
         onOpenChange={(val) => {
           if (!val) {
-            setDetailPengajuan({});
+            setDetailCat({});
           }
           setOpenAlert(val);
         }}
-        title="Apakah Anda yakin akan menghapus pengajuan ini?"
-        description="Periksa kembali, karena hal ini akan menghapus data pengajuan yang dipilih secara permanen."
-        onAction={handleDelPengajuan}
+        title="Apakah Anda yakin akan menghapus kategori ini?"
+        description="Periksa kembali, karena hal ini akan menghapus kategori yang dipilih secara permanen."
+        onAction={handleDelCat}
       />
       <ModalForm
         open={openDialog}
         onOpenChange={(val) => {
           if (!val) {
-            handleCloseDialog();
+            setErrMessage("");
+            setDetailCat({});
           }
           setOpenDialog(val);
         }}
-        onSubmit={handleEditPengajuan}
-        title="Ubah Pengajuan"
-        description="Perbaiki data pengajuan. Klik simpan ketika sudah selesai."
+        onSubmit={detailCat?.id ? handleEditCat : handleAddCat}
+        title={detailCat?.id ? "Ubah Kategori" : "Tambah Kategori"}
+        description={
+          detailCat?.id
+            ? "Perbaiki data kategori"
+            : "Masukkan data kategori baru" +
+              ". Klik simpan ketika sudah selesai."
+        }
       >
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="type">Jenis</Label>
+          <Label htmlFor="name">Nama Kategori</Label>
           <Input
-            defaultValue={detailPengajuan?.type}
+            defaultValue={detailCat?.name}
             onChange={() => setErrMessage("")}
             type="text"
-            id="type"
-            name="type"
-            className="col-span-3 bg-white"
-          />
-        </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="category">Kategori</Label>
-          <Input
-            defaultValue={detailPengajuan?.category}
-            onChange={() => setErrMessage("")}
-            type="text"
-            id="category"
-            name="category"
-            className="col-span-3 bg-white"
-          />
-        </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="status">Status</Label>
-          <Input
-            defaultValue={detailPengajuan?.status}
-            onChange={() => setErrMessage("")}
-            type="text"
-            id="status"
-            name="status"
+            id="name"
+            name="name"
+            placeholder="Contoh: Masalah Infrastruktur"
             className="col-span-3 bg-white"
           />
         </div>
@@ -210,12 +200,21 @@ export default function ListPengajuanComponent({
         )}
       </ModalForm>
       <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">List Pengajuan</h2>
+        <h2 className="text-3xl font-bold tracking-tight">
+          Kategori Pengaduan
+        </h2>
       </div>
       <div className="grid gap-4 grid-cols-1">
         <Card>
           <CardContent>
-            <DataTable data={listPengajuan?.items} columns={columns} />
+            <DataTable
+              data={listCat?.items}
+              columns={columns}
+              searchPlaceholder="Cari Kategori..."
+              searchColumn="name"
+              buttonLabel="Tambah Kategori"
+              buttonOnClick={() => setOpenDialog(true)}
+            />
           </CardContent>
         </Card>
       </div>

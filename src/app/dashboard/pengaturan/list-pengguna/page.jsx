@@ -12,7 +12,9 @@ export default function ListPenggunaPage() {
 
   const getUser = async () => {
     try {
-      const { data } = await get("user-management/internal/users");
+      const { data } = await get("user-management/internal/users", {
+        page: -1,
+      });
       cl(data);
       setListUser(data.data);
     } catch (error) {
