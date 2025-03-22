@@ -115,6 +115,10 @@ const data = {
           title: "List Pengguna",
           url: "/dashboard/pengaturan/list-pengguna",
         },
+        {
+          title: "List Banner",
+          url: "/dashboard/pengaturan/list-banner",
+        },
       ],
     },
     {
@@ -149,7 +153,7 @@ export default function LayoutComponent({ children, ...props }) {
         <SidebarHeader>
           <div className="px-2 py-2 flex items-center justify-center truncate">
             <img
-              src="/joyful-garut.png"
+              src="/logo-garut-hebat-mono.svg"
               alt="Image"
               className="w-1/2 dark:brightness-[0.2] dark:grayscale"
             />

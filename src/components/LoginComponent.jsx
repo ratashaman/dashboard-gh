@@ -20,11 +20,11 @@ export default function LoginComponent({
             <div className="flex flex-col gap-6">
               <div className="flex flex-col items-center text-center gap-6">
                 <img
-                  src="/joyful-garut.png"
+                  src="/logo-garut-hebat-ori.svg"
                   alt="Image"
                   className="w-1/2 md:w-1/3 dark:brightness-[0.2] dark:grayscale"
                 />
-                <h1 className="text-2xl font-bold text-secondary">
+                <h1 className="text-2xl font-bold text-primary">
                   Dashboard Garut Hebat
                 </h1>
               </div>
@@ -64,7 +64,11 @@ export default function LoginComponent({
                   {errMessage}
                 </div>
               )}
-              <Button type="submit" className="w-full font-bold">
+              <Button
+                type="submit"
+                variant="secondary"
+                className="w-full font-bold"
+              >
                 Masuk
               </Button>
             </div>
