@@ -116,6 +116,10 @@ const data = {
           url: "/dashboard/pengaturan/list-pengguna",
         },
         {
+          title: "List Role",
+          url: "/dashboard/pengaturan/list-role",
+        },
+        {
           title: "List Banner",
           url: "/dashboard/pengaturan/list-banner",
         },
