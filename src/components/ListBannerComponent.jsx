@@ -17,6 +17,7 @@ import ModalForm from "@/components/shared/modal-form";
 import DataTable from "@/components/shared/data-table";
 import LoadingScreen from "@/components/shared/loadingScreen";
 import { cl } from "@/lib/logger";
+import { convertToBase64, imageUrlToBase64 } from "@/lib/utils";
 
 export default function ListBannerComponent({
   listBanner,
@@ -28,24 +29,24 @@ export default function ListBannerComponent({
   const [openDialog, setOpenDialog] = useState(false);
   const [openAlert, setOpenAlert] = useState(false);
   const [errMessage, setErrMessage] = useState("");
-  const [statusChecked, setStatusChecked] = useState(false);
+  const [statusChecked, setStatusChecked] = useState("BANNER_HIDE");
   const [detailBanner, setDetailBanner] = useState({});
 
   const columns = [
     {
-      accessorKey: "title",
+      accessorKey: "caption",
       header: "Judul",
       cell: ({ row }) => (
-        <div className="capitalize">{row.getValue("title")}</div>
+        <div className="capitalize">{row.getValue("caption")}</div>
       ),
     },
     {
-      accessorKey: "img",
+      accessorKey: "attachment",
       header: "Gambar",
       cell: ({ row }) => (
         <div className="">
           <img
-            src={row.getValue("img")}
+            src={row.getValue("attachment")}
             alt="Image"
             className="w-1/2 dark:brightness-[0.2] dark:grayscale"
           />
@@ -57,7 +58,9 @@ export default function ListBannerComponent({
       header: "Status",
       cell: ({ row }) => (
         <div className="">
-          {row.getValue("status") ? "tampilkan" : "sembunyikan"}
+          {row.getValue("status") === "BANNER_SHOW"
+            ? "ditampilkan"
+            : "disembunyikan"}
         </div>
       ),
     },
@@ -102,19 +105,22 @@ export default function ListBannerComponent({
     e.preventDefault();
     try {
       const formData = new FormData(e.target);
-      const { title, category } = Object.fromEntries(formData);
+      const { caption, attachment } = Object.fromEntries(formData);
 
-      if (title === null) {
+      if (caption === null) {
         return setErrMessage("Judul banner tidak boleh kosong");
       }
 
-      if (category === null) {
-        return setErrMessage("Kategori banner tidak boleh kosong");
+      if (attachment?.name === "" || attachment?.size === 0) {
+        return setErrMessage("Gambar banner tidak boleh kosong");
       }
 
-      const data = await addBanner(detailBanner?.id, {
-        title,
-        category,
+      const img64 = await convertToBase64(attachment);
+      console.log(img64);
+
+      const data = await addBanner({
+        caption,
+        attachment: img64,
         status: statusChecked,
       });
       cl(data);
@@ -130,19 +136,21 @@ export default function ListBannerComponent({
     e.preventDefault();
     try {
       const formData = new FormData(e.target);
-      const { title, category } = Object.fromEntries(formData);
+      const { caption, attachment } = Object.fromEntries(formData);
 
-      if (title === null) {
+      if (caption === null) {
         return setErrMessage("Judul banner tidak boleh kosong");
       }
 
-      if (category === null) {
-        return setErrMessage("Kategori banner tidak boleh kosong");
-      }
+      const img64 =
+        attachment?.name === "" || attachment?.size === 0
+          ? await imageUrlToBase64(detailBanner?.attachment)
+          : await convertToBase64(attachment);
+      console.log(img64);
 
       const data = await editBanner(detailBanner?.id, {
-        title,
-        category,
+        caption,
+        attachment: img64,
         status: statusChecked,
       });
       cl(data);
@@ -167,7 +175,7 @@ export default function ListBannerComponent({
   const handleCloseDialog = () => {
     setErrMessage("");
     setDetailBanner({});
-    setStatusChecked(false);
+    setStatusChecked("BANNER_HIDE");
     setOpenDialog(false);
   };
 
@@ -195,49 +203,60 @@ export default function ListBannerComponent({
           }
           setOpenDialog(val);
         }}
-        onSubmit={detailBanner?.name ? handleEditBanner : handleAddBanner}
-        title={detailBanner?.name ? "Ubah Banner" : "Tambah Banner"}
+        onSubmit={detailBanner?.caption ? handleEditBanner : handleAddBanner}
+        title={detailBanner?.caption ? "Ubah Banner" : "Tambah Banner"}
         description={
-          detailBanner?.name
+          detailBanner?.caption
             ? "Perbaiki data banner"
             : "Masukkan data banner baru" +
               ". Klik simpan ketika sudah selesai."
         }
       >
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="title">Judul</Label>
+          <Label htmlFor="caption">Judul</Label>
           <Input
-            defaultValue={detailBanner?.title}
+            defaultValue={detailBanner?.caption}
             onChange={() => setErrMessage("")}
             type="text"
-            id="title"
-            name="title"
+            id="caption"
+            name="caption"
             className="col-span-3 bg-white"
           />
         </div>
+        {!!detailBanner?.attachment && (
+          <div className="flex justify-center items-center gap-4">
+            <img
+              src={detailBanner?.attachment}
+              alt="Attachment"
+              className="w-1/2 dark:brightness-[0.2] dark:grayscale"
+            />
+          </div>
+        )}
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="img">Gambar</Label>
+          <Label htmlFor="attachment">Gambar</Label>
           <Input
-            defaultValue={detailBanner?.img}
             onChange={() => setErrMessage("")}
             type="file"
-            id="img"
-            name="img"
+            accept="image/png, image/jpeg"
+            id="attachment"
+            name="attachment"
             className="col-span-3 bg-white"
           />
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="status">Kategori</Label>
+          <Label htmlFor="status">Status</Label>
           <div className="col-span-3 flex items-center">
             <Switch
-              checked={statusChecked}
-              onCheckedChange={setStatusChecked}
+              checked={statusChecked === "BANNER_SHOW"}
+              onCheckedChange={(e) =>
+                setStatusChecked(e ? "BANNER_SHOW" : "BANNER_HIDE")
+              }
               id="status"
               name="status"
               className="bg-white mr-4"
             />
             <Label htmlFor="status">
-              {statusChecked ? "Tampilkan" : "Sembunyikan"}
+              {statusChecked === "BANNER_SHOW" ? "Tampilkan" : "Sembunyikan"}
             </Label>
           </div>
         </div>
@@ -256,7 +275,7 @@ export default function ListBannerComponent({
             <DataTable
               data={listBanner?.items}
               columns={columns}
-              searchColumn="title"
+              searchColumn="caption"
               searchPlaceholder="Cari banner..."
               buttonLabel="Tambah Banner"
               buttonOnClick={() => setOpenDialog(true)}
