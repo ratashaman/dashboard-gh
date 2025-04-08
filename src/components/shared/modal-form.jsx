@@ -7,6 +7,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
@@ -26,14 +27,27 @@ export default function ModalForm({
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <DialogDescription>{description}</DialogDescription>
-        <form onSubmit={onSubmit}>
-          <div className="grid gap-4 py-4">{children}</div>
-          <DialogFooter>
-            <Button variant="secondary" type="submit">
-              {submitLabel}
-            </Button>
-          </DialogFooter>
-        </form>
+        {onSubmit ? (
+          <form onSubmit={onSubmit}>
+            <div className="grid gap-4 py-4">{children}</div>
+            <DialogFooter>
+              <Button variant="secondary" type="submit">
+                {submitLabel}
+              </Button>
+            </DialogFooter>
+          </form>
+        ) : (
+          <>
+            <div className="grid gap-4 py-4">{children}</div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="secondary" type="button">
+                  {submitLabel}
+                </Button>
+              </DialogClose>
+            </DialogFooter>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

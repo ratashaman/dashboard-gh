@@ -12,6 +12,7 @@ import {
   SquareTerminal,
   ChartNoAxesCombined,
   Newspaper,
+  ShieldUser,
 } from "lucide-react";
 import { NavMain } from "@/components/layout/nav-main";
 import { NavUser } from "@/components/layout/nav-user";
@@ -33,111 +34,144 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
+import NotFoundComponent from "./NotFoundComponent";
 
 // Side menu.
-const data = {
-  navMain: [
-    {
-      title: "Ringkasan",
-      url: "/dashboard/ringkasan",
-      icon: ChartNoAxesCombined,
-    },
-    {
-      title: "Administrasi",
-      url: "#",
-      icon: SquareTerminal,
-      items: [
-        {
-          title: "List Pengajuan KTP",
-          url: "/dashboard/administrasi/list-pengajuan-ktp",
-        },
-      ],
-    },
-    {
-      title: "Pengaduan",
-      url: "#",
-      icon: Flag,
-      items: [
-        {
-          title: "List Pengaduan",
-          url: "/dashboard/pengaduan/list-pengaduan",
-        },
-        {
-          title: "Kategori Pengaduan",
-          url: "/dashboard/pengaduan/kategori-pengaduan",
-        },
-        {
-          title: "Departemen Pengaduan",
-          url: "/dashboard/pengaduan/departemen-pengaduan",
-        },
-      ],
-    },
-    {
-      title: "Lowongan Pekerjaan",
-      url: "#",
-      icon: BookOpen,
-      items: [
-        {
-          title: "Lamaran",
-          url: "/dashboard/loker/lamaran",
-        },
-        {
-          title: "Lowongan",
-          url: "/dashboard/loker/lowongan",
-        },
-        {
-          title: "Perekrut Kerja",
-          url: "/dashboard/loker/perekrut",
-        },
-      ],
-    },
-    {
-      title: "Berita",
-      url: "#",
-      icon: Newspaper,
-      items: [
-        {
-          title: "Kategori",
-          url: "/dashboard/berita/kategori",
-        },
-        {
-          title: "Konten",
-          url: "/dashboard/berita/konten",
-        },
-      ],
-    },
-    {
-      title: "Pengaturan",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "List Pengguna",
-          url: "/dashboard/pengaturan/list-pengguna",
-        },
-        {
-          title: "List Role",
-          url: "/dashboard/pengaturan/list-role",
-        },
-        {
-          title: "List Banner",
-          url: "/dashboard/pengaturan/list-banner",
-        },
-      ],
-    },
-    {
-      title: "Chat Bot",
-      url: "/dashboard/chat-bot",
-      icon: Bot,
-    },
-  ],
-};
+const navMain = [
+  {
+    role: ["admin", "superadmin", "complaint"],
+    title: "Ringkasan",
+    url: "/dashboard/ringkasan",
+    icon: ChartNoAxesCombined,
+  },
+  {
+    role: ["admin", "superadmin"],
+    title: "Administrasi",
+    url: "#",
+    icon: SquareTerminal,
+    items: [
+      {
+        title: "List Pengajuan KTP",
+        url: "/dashboard/administrasi/list-pengajuan-ktp",
+      },
+    ],
+  },
+  {
+    role: ["admin", "superadmin", "complaint"],
+    title: "Pengaduan",
+    url: "#",
+    icon: Flag,
+    items: [
+      {
+        title: "List Pengaduan",
+        url: "/dashboard/pengaduan/list-pengaduan",
+      },
+      {
+        title: "Kategori Pengaduan",
+        url: "/dashboard/pengaduan/kategori-pengaduan",
+      },
+      {
+        title: "Departemen Pengaduan",
+        url: "/dashboard/pengaduan/departemen-pengaduan",
+      },
+    ],
+  },
+  {
+    role: ["admin", "superadmin"],
+    title: "Lowongan Pekerjaan",
+    url: "#",
+    icon: BookOpen,
+    items: [
+      {
+        title: "Lamaran",
+        url: "/dashboard/loker/lamaran",
+      },
+      {
+        title: "Lowongan",
+        url: "/dashboard/loker/lowongan",
+      },
+      {
+        title: "Perekrut Kerja",
+        url: "/dashboard/loker/perekrut",
+      },
+    ],
+  },
+  {
+    role: ["admin", "superadmin"],
+    title: "Berita",
+    url: "#",
+    icon: Newspaper,
+    items: [
+      {
+        title: "Kategori",
+        url: "/dashboard/berita/kategori",
+      },
+      {
+        title: "Konten",
+        url: "/dashboard/berita/konten",
+      },
+    ],
+  },
+  {
+    role: ["admin", "superadmin"],
+    title: "Pengaturan",
+    url: "#",
+    icon: Settings2,
+    items: [
+      {
+        title: "List Pengguna",
+        url: "/dashboard/pengaturan/list-pengguna",
+      },
+      {
+        title: "List Banner",
+        url: "/dashboard/pengaturan/list-banner",
+      },
+    ],
+  },
+  {
+    role: ["superadmin"],
+    title: "List Role",
+    url: "/dashboard/list-role",
+    icon: ShieldUser,
+  },
+  {
+    role: ["admin", "superadmin"],
+    title: "Chat Bot",
+    url: "/dashboard/chat-bot",
+    icon: Bot,
+  },
+];
 
 export default function LayoutComponent({ children, ...props }) {
   const router = useRouter();
   const pathname = usePathname();
   const pathsplit = pathname.split("/");
   const { users, fetchUsers } = useUserStore();
+
+  const checkRole = () => {
+    if (users?.roles?.length) {
+      return navMain.filter((nav) =>
+        users.roles.some((role) => nav.role.includes(role.systemName))
+      );
+    } else {
+      return [];
+    }
+  };
+
+  const checkPath = () => {
+    const filteredNav = checkRole();
+    if (users?.roles?.length && filteredNav.length) {
+      return (
+        filteredNav.filter(
+          (nav) =>
+            nav.url === pathname ||
+            nav?.items?.some((item) => item.url === pathname)
+        ).length > 0
+      );
+    } else {
+      return false;
+    }
+  };
 
   React.useEffect(() => {
     const checkToken = async () => {
@@ -164,7 +198,7 @@ export default function LayoutComponent({ children, ...props }) {
           </div>
         </SidebarHeader>
         <SidebarContent>
-          <NavMain items={data.navMain} />
+          <NavMain items={checkRole()} />
         </SidebarContent>
         <SidebarFooter>
           <NavUser user={users} />
@@ -197,7 +231,9 @@ export default function LayoutComponent({ children, ...props }) {
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <div className="flex-1 space-y-4 p-8 pt-6">{children}</div>
+          <div className="flex-1 space-y-4 p-8 pt-6">
+            {checkPath() ? children : <NotFoundComponent />}
+          </div>
           {/* load chatbot widget */}
           <Script
             strategy="afterInteractive"

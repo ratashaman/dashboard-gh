@@ -29,6 +29,7 @@ export default function ListPengaduanComponent({
   editStatus,
   delComplaint,
 }) {
+  const [openDialogDetail, setOpenDialogDetail] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [openAlert, setOpenAlert] = useState(false);
   const [errMessage, setErrMessage] = useState("");
@@ -111,6 +112,14 @@ export default function ListPengaduanComponent({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => {
+                  setDetailComplaint(detail);
+                  setOpenDialogDetail(true);
+                }}
+              >
+                Detail Pengaduan
+              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
                   const type = listType.find(
@@ -250,6 +259,51 @@ export default function ListPengaduanComponent({
         description="Periksa kembali, karena hal ini akan menghapus data pengaduan yang dipilih secara permanen."
         onAction={handleDelUser}
       />
+      <ModalForm
+        open={openDialogDetail}
+        onOpenChange={setOpenDialogDetail}
+        onSubmit={false}
+        description="Data lengkap terkait pengaduan."
+        submitLabel="Kembali"
+        title="Detail Pengaduan"
+      >
+        <div className="grid grid-cols-4 items-center gap-4">
+          <div className="">Judul</div>
+          <div className="col-span-3">{detailComplaint?.title}</div>
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <div className="">Alamat</div>
+          <a
+            href={`https://www.google.com/maps/search/?api=1&query=${detailComplaint?.latitude},${detailComplaint?.longitude}`}
+            className="col-span-3 hover:underline"
+          >
+            {detailComplaint?.address}
+          </a>
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <div className="">Pelapor</div>
+          <div className="col-span-3">
+            {detailComplaint?.createdBy?.fullName} <br />{" "}
+            {detailComplaint?.citizenId}
+          </div>
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <div className="">Jenis</div>
+          <div className="col-span-3">
+            {detailComplaint?.complaintType?.name}
+          </div>
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <div className="">Status</div>
+          <div className="col-span-3">
+            {
+              complaintStatus.find(
+                (item) => item.value === detailComplaint?.status
+              )?.label
+            }
+          </div>
+        </div>
+      </ModalForm>
       <ModalForm
         open={openDialog}
         onOpenChange={(val) => {
