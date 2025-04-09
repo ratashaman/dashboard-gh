@@ -281,11 +281,22 @@ export default function ListPengaduanComponent({
           </a>
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
-          <div className="">Pelapor</div>
+          <div className="">Nama Pelapor</div>
           <div className="col-span-3">
-            {detailComplaint?.createdBy?.fullName} <br />{" "}
-            {detailComplaint?.citizenId}
+            {detailComplaint?.createdBy?.fullName}
           </div>
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <div className="">No. HP Pelapor</div>
+          <div className="col-span-3">
+            {detailComplaint?.createdBy?.phone.length
+              ? detailComplaint?.createdBy?.phone
+              : "-"}
+          </div>
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <div className="">No. KTP Pelapor</div>
+          <div className="col-span-3">{detailComplaint?.citizenId}</div>
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
           <div className="">Jenis</div>
