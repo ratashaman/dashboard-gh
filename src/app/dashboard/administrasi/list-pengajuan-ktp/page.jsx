@@ -27,7 +27,8 @@ export default function ListPengajuanPage() {
         "resident-service/internals/id-cards/" + id + "/status",
         payload
       );
-      cl(data);
+      await getPengajuan();
+      return data;
     } catch (error) {
       cl(error);
     }
