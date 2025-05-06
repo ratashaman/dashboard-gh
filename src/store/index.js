@@ -34,7 +34,7 @@ export const useUserStore = create((set) => ({
     } catch (error) {
       cl(error.message);
       clearStorages(["accessToken", "refreshToken"]);
-      set({ isLoading: false });
+      set({ users: {}, isLoading: false });
       return false;
     }
   },

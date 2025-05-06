@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { MoreHorizontal } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import DeleteAlert from "@/components/shared/delete-alert";
 import ModalForm from "@/components/shared/modal-form";
+import ModalImage from "@/components/shared/modal-image";
 import DataTable from "@/components/shared/data-table";
 import SelectSearch from "react-tailwindcss-select";
 import LoadingScreen from "@/components/shared/loadingScreen";
@@ -32,6 +33,8 @@ export default function ListPengaduanComponent({
   const [openDialogDetail, setOpenDialogDetail] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [openAlert, setOpenAlert] = useState(false);
+  const [openImage, setOpenImage] = useState(false);
+  const [imgSrc, setImgSrc] = useState("");
   const [errMessage, setErrMessage] = useState("");
   const [type, setType] = useState(null);
   const [department, setDepartment] = useState(null);
@@ -91,7 +94,17 @@ export default function ListPengaduanComponent({
       accessorKey: "status",
       header: "Status",
       cell: ({ row }) => (
-        <div className="capitalize">
+        <div
+          className={`capitalize ${
+            row.getValue("status") === "COMPLAINT_FINISH"
+              ? "text-[#00FF00]"
+              : row.getValue("status") === "COMPLAINT_REJECT"
+              ? "text-[#FF0000]"
+              : row.getValue("status") === "COMPLAINT_VALIDATED"
+              ? "text-[#0000FF]"
+              : ""
+          }`}
+        >
           {
             complaintStatus.find((a) => a.value === row.getValue("status"))
               ?.label
@@ -138,9 +151,9 @@ export default function ListPengaduanComponent({
                   setOpenDialog(true);
                 }}
               >
-                Ubah Pengaduan
+                Tugaskan Dinas
               </DropdownMenuItem>
-              <DropdownMenuItem
+              {/* <DropdownMenuItem
                 onClick={() => {
                   const status = complaintStatus.find(
                     (item) => item.value === detail?.status
@@ -151,7 +164,7 @@ export default function ListPengaduanComponent({
                 }}
               >
                 Ubah Status
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
               <DropdownMenuItem
                 onClick={() => {
                   setDetailComplaint(detail);
@@ -314,7 +327,32 @@ export default function ListPengaduanComponent({
             }
           </div>
         </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+          {detailComplaint?.attachments?.map((img, idx) => (
+            <div
+              key={idx}
+              onClick={() => {
+                setImgSrc(img);
+                setOpenImage(true);
+              }}
+              className="h-20 bg-contain bg-no-repeat bg-center cursor-pointer"
+              style={{ backgroundImage: `url(${img})` }}
+            ></div>
+          ))}
+        </div>
       </ModalForm>
+      <ModalImage
+        open={openImage}
+        onOpenChange={(val) => {
+          setOpenImage(val);
+          if (!val) {
+            setOpenDialogDetail(true);
+            setImgSrc("");
+          }
+          if (val) setOpenDialogDetail(false);
+        }}
+        image={imgSrc}
+      />
       <ModalForm
         open={openDialog}
         onOpenChange={(val) => {
@@ -328,8 +366,8 @@ export default function ListPengaduanComponent({
             ? handleEditComplaint
             : handleEditStatus
         }
-        title="Ubah Pengaduan"
-        description="Perbaiki data pengaduan. Klik simpan ketika sudah selesai."
+        title="Tugaskan Dinas"
+        description="Silakan isi sesuai tugasnya. Klik simpan ketika sudah selesai."
       >
         {type !== null && department !== null && (
           <>
